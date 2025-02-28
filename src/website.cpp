@@ -189,7 +189,7 @@ void setupWebserver(AsyncWebServer &server) {
 
     // Load the Spoolman URL at boot.
     spoolmanUrl = loadSpoolmanUrl();
-    Serial.print("Geladene Spoolman-URL: ");
+    Serial.print("Loaded Spoolman URL: ");
     Serial.println(spoolmanUrl);
 
     // Route for About

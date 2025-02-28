@@ -92,7 +92,7 @@ bool loadBambuCredentials() {
 
         return true;
     }
-    Serial.println("Keine gültigen Bambu-Credentials gefunden.");
+    Serial.println("No valid Bambu credentials found.");
     return false;
 }
 
@@ -690,7 +690,7 @@ bool setupMqtt() {
         } 
         else 
         {
-            Serial.println("Fehler: Konnte sich nicht beim MQTT-Server anmelden");
+            Serial.println("Error: Couldn't register with the MQTT server");
             oledShowMessage("Bambu Connection Failed");
             vTaskDelay(2000 / portTICK_PERIOD_MS);
             connected = false;
@@ -701,7 +701,7 @@ bool setupMqtt() {
     } 
     else 
     {
-        Serial.println("Fehler: Keine MQTT-Daten vorhanden");
+        Serial.println("Error: no MQTT data available");
         oledShowMessage("Bambu Credentials Missing");
         oledShowTopRow();
         vTaskDelay(2000 / portTICK_PERIOD_MS);
