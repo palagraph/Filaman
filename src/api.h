@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h> // Include for AsyncWebServerRequest
+
 #include "website.h"
 #include "display.h"
 #include <ArduinoJson.h>
@@ -12,12 +13,14 @@ extern String spoolmanUrl;
 
 bool checkSpoolmanInstance(const String& url);
 bool saveSpoolmanUrl(const String& url);
-String loadSpoolmanUrl(); // Neue Funktion zum Laden der URL
-bool checkSpoolmanExtraFields(); // Neue Funktion zum Überprüfen der Extrafelder
-JsonDocument fetchSingleSpoolInfo(int spoolId); // API-Funktion für die Webseite
-bool updateSpoolTagId(String uidString, const char* payload); // Neue Funktion zum Aktualisieren eines Spools
-uint8_t updateSpoolWeight(String spoolId, uint16_t weight); // Neue Funktion zum Aktualisieren des Gewichts
-bool initSpoolman(); // Neue Funktion zum Initialisieren von Spoolman
-bool updateSpoolBambuData(String payload); // Neue Funktion zum Aktualisieren der Bambu-Daten
+String loadSpoolmanUrl(); // New function for loading the URL
+bool checkSpoolmanExtraFields(); // New function to check the extrafelder
+JsonDocument fetchSingleSpoolInfo(int spoolId); // API function for the website
+
+bool updateSpoolTagId(String uidString, const char* payload); // New function to update a spool
+uint8_t updateSpoolWeight(String spoolId, uint16_t weight); // New function for updating the weight
+bool initSpoolman(); // New function to initialize Spoolman
+bool updateSpoolBambuData(String payload); // New function to update the BAMBU data
+
 
 #endif

@@ -15,8 +15,8 @@
   #define VERSION "1.1.0"
 #endif
 
-// Cache-Control Header definieren
-#define CACHE_CONTROL "max-age=604800" // Cache für 1 Woche
+// Define Cache Control header
+#define CACHE_CONTROL "max-age=604800" // Cache for 1 week
 
 AsyncWebServer server(webserverPort);
 AsyncWebSocket ws("/ws");
@@ -27,14 +27,14 @@ uint8_t lastHasReadRfidTag = 0;
 
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
     if (type == WS_EVT_CONNECT) {
-        Serial.println("Neuer Client verbunden!");
-        // Sende die AMS-Daten an den neuen Client
+        Serial.println("New client connected!");
+        // Send the AMS data to the new client
         sendAmsData(client);
         sendNfcData(client);
         foundNfcTag(client, 0);
         sendWriteResult(client, 3);
     } else if (type == WS_EVT_DISCONNECT) {
-        Serial.println("Client getrennt.");
+        Serial.println("Client disconnected.");
     } else if (type == WS_EVT_ERROR) {
         Serial.printf("WebSocket Client #%u error(%u): %s\n", client->id(), *((uint16_t*)arg), (char*)data);
     } else if (type == WS_EVT_PONG) {
@@ -45,7 +45,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         deserializeJson(doc, message);
 
         if (doc["type"] == "heartbeat") {
-            // Sende Heartbeat-Antwort
+            // Send Heartbeat response
             ws.text(client->id(), "{"
                 "\"type\":\"heartbeat\","
                 "\"freeHeap\":" + String(ESP.getFreeHeap()/1024) + ","
@@ -56,7 +56,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
 
         else if (doc["type"] == "writeNfcTag") {
             if (doc["payload"].is<JsonObject>()) {
-                // Versuche NFC-Daten zu schreiben
+                // Attempts to write NFC data
                 String payloadString;
                 serializeJson(doc["payload"], payloadString);
                 startWriteJsonToTag(payloadString.c_str());
@@ -105,16 +105,16 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         }
 
         else {
-            Serial.println("Unbekannter WebSocket-Typ: " + doc["type"].as<String>());
+            Serial.println("Unknown website type: " + doc["type"].as<String>());
         }
     }
 }
 
-// Funktion zum Laden und Ersetzen des Headers in einer HTML-Datei
+// Function for charging and replacing the header in an HTML file
 String loadHtmlWithHeader(const char* filename) {
-    Serial.println("Lade HTML-Datei: " + String(filename));
+    Serial.println("Load HTML file.: " + String(filename));
     if (!SPIFFS.exists(filename)) {
-        Serial.println("Fehler: Datei nicht gefunden!");
+        Serial.println("Error: File not found!");
         return "Fehler: Datei nicht gefunden!";
     }
 
@@ -126,7 +126,7 @@ String loadHtmlWithHeader(const char* filename) {
 }
 
 void sendWriteResult(AsyncWebSocketClient *client, uint8_t success) {
-    // Sende Erfolg/Misserfolg an alle Clients
+    // Send success/failure to all clients
     String response = "{\"type\":\"writeNfcTag\",\"success\":" + String(success ? "1" : "0") + "}";
     ws.textAll(response);
 }
@@ -152,15 +152,15 @@ void sendNfcData(AsyncWebSocketClient *client) {
     }
     else if (hasReadRfidTag == 3)
     {
-        ws.textAll("{\"type\":\"nfcData\", \"payload\":{\"info\":\"Schreibe Tag...\"}}");
+        ws.textAll("{\"type\":\"nfcData\", \"payload\":{\"info\":\"Write tag ...\"}}");
     }
     else if (hasReadRfidTag == 4)
     {
-        ws.textAll("{\"type\":\"nfcData\", \"payload\":{\"error\":\"Error writing to Tag\"}}");
+        ws.textAll("{\"type\":\"nfcData\", \"payload\":{\"error\":\"Error writing to tag\"}}");
     }
     else if (hasReadRfidTag == 5)
     {
-        ws.textAll("{\"type\":\"nfcData\", \"payload\":{\"info\":\"Tag erfolgreich geschrieben\"}}");
+        ws.textAll("{\"type\":\"nfcData\", \"payload\":{\"info\":\"Tag successfully written\"}}");
     }
     else 
     {
@@ -176,48 +176,48 @@ void sendAmsData(AsyncWebSocketClient *client) {
 }
 
 void setupWebserver(AsyncWebServer &server) {
-    // Deaktiviere alle Debug-Ausgaben
+    // Disable all debug output.
     Serial.setDebugOutput(false);
     
-    // WebSocket-Optimierungen
+    // Web socket optimizations
     ws.onEvent(onWsEvent);
     ws.enable(true);
 
-    // Konfiguriere Server für große Uploads
+    // Configure servers for large uploads
     server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){});
     server.onFileUpload([](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){});
 
-    // Lade die Spoolman-URL beim Booten
+    // Load the Spoolman URL at boot.
     spoolmanUrl = loadSpoolmanUrl();
     Serial.print("Geladene Spoolman-URL: ");
     Serial.println(spoolmanUrl);
 
-    // Route für about
+    // Route for About
     server.on("/about", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /about erhalten");
+        Serial.println("Receive request for /about");
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html.gz", "text/html");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
     });
 
-    // Route für Waage
-    server.on("/waage", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /waage erhalten");
-        AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/waage.html.gz", "text/html");
+    // Route for scales
+    server.on("/scale", HTTP_GET, [](AsyncWebServerRequest *request){
+        Serial.println("Receive request for /scales");
+        AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/scale.html.gz", "text/html");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
     });
 
-    // Route für RFID
+    // Route for RFID
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /rfid erhalten");
+        Serial.println("Receive request for /RFID");
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/rfid.html.gz", "text/html");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("RFID-Seite gesendet");
+        Serial.println("RFID page sent");
     });
 
     server.on("/api/url", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -226,18 +226,18 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(200, "application/json", jsonResponse);
     });
 
-    // Route für WiFi
+    // Route for WiFi
     server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /wifi erhalten");
+        Serial.println("Receive request for /wifi");
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/wifi.html.gz", "text/html");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
     });
 
-    // Route für Spoolman Setting
+    // Route for Spoolman Setting
     server.on("/spoolman", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /spoolman erhalten");
+        Serial.println("Receive request for /spoolman");
         String html = loadHtmlWithHeader("/spoolman.html");
         html.replace("{{spoolmanUrl}}", spoolmanUrl);
 
@@ -270,7 +270,7 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(200, "text/html", html);
     });
 
-    // Route für das Überprüfen der Spoolman-Instanz
+    // Route for checking the Spoolman instance
     server.on("/api/checkSpoolman", HTTP_GET, [](AsyncWebServerRequest *request){
         if (!request->hasParam("url")) {
             request->send(400, "application/json", "{\"success\": false, \"error\": \"Missing URL parameter\"}");
@@ -286,7 +286,7 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(200, "application/json", jsonResponse);
     });
 
-    // Route für das Überprüfen der Spoolman-Instanz
+    // Route for checking the Spoolman instance
     server.on("/api/bambu", HTTP_GET, [](AsyncWebServerRequest *request){
         if (!request->hasParam("bambu_ip") || !request->hasParam("bambu_serialnr") || !request->hasParam("bambu_accesscode")) {
             request->send(400, "application/json", "{\"success\": false, \"error\": \"Missing parameter\"}");
@@ -314,76 +314,76 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(200, "application/json", "{\"healthy\": " + String(success ? "true" : "false") + "}");
     });
 
-    // Route für das Überprüfen der Spoolman-Instanz
+    // Route for checking the Spoolman instance
     server.on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request){
         ESP.restart();
     });
 
-    // Route für das Laden der CSS-Datei
+    // Route for charging the CSS file
     server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Lade style.css");
+        Serial.println("Load style.css");
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/style.css.gz", "text/css");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("style.css gesendet");
+        Serial.println("style.css sent");
     });
 
-    // Route für das Logo
+    // Route for the logo
     server.on("/logo.png", HTTP_GET, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/logo.png.gz", "image/png");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("logo.png gesendet");
+        Serial.println("logo.png sent");
     });
 
-    // Route für Favicon
+    // Route for Favicon
     server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/favicon.ico", "image/x-icon");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("favicon.ico gesendet");
+        Serial.println("favicon.ico sent");
     });
 
-    // Route für spool_in.png
+    // Route for spool_in.png
     server.on("/spool_in.png", HTTP_GET, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/spool_in.png.gz", "image/png");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("spool_in.png gesendet");
+        Serial.println("spool_in.png sent");
     });
 
-    // Route für set_spoolman.png
+    // Route for set_spoolman.png
     server.on("/set_spoolman.png", HTTP_GET, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/set_spoolman.png.gz", "image/png");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("set_spoolman.png gesendet");
+        Serial.println("set_spoolman.png sent");
     });
 
     // Route für JavaScript Dateien
     server.on("/spoolman.js", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /spoolman.js erhalten");
+        Serial.println("Received request for /spoolman.js");
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/spoolman.js.gz", "text/javascript");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("Spoolman.js gesendet");
+        Serial.println("Spoolman.js sent");
     });
 
     server.on("/rfid.js", HTTP_GET, [](AsyncWebServerRequest *request){
-        Serial.println("Anfrage für /rfid.js erhalten");
+        Serial.println("Received request for /rfid.js");
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS,"/rfid.js.gz", "text/javascript");
         response->addHeader("Content-Encoding", "gzip");
         response->addHeader("Cache-Control", CACHE_CONTROL);
         request->send(response);
-        Serial.println("RFID.js gesendet");
+        Serial.println("RFID.js sent");
     });
 
-    // Vereinfachter Update-Handler
+    // Simplified update handler
     server.on("/upgrade", HTTP_GET, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/upgrade.html.gz", "text/html");
         response->addHeader("Content-Encoding", "gzip");
@@ -391,7 +391,7 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(response);
     });
 
-    // Update-Handler registrieren
+    // Register update handler
     handleUpdate(server);
 
     server.on("/api/version", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -400,19 +400,19 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(200, "application/json", jsonResponse);
     });
 
-    // Fehlerbehandlung für nicht gefundene Seiten
+    // Error processing for non -found pages
     server.onNotFound([](AsyncWebServerRequest *request){
-        Serial.print("404 - Nicht gefunden: ");
+        Serial.print("404 - not found: ");
         Serial.println(request->url());
-        request->send(404, "text/plain", "Seite nicht gefunden");
+        request->send(404, "text/plain", "Page not found");
     });
 
-    // WebSocket-Route
+    // Web Socket Route
     ws.onEvent(onWsEvent);
     server.addHandler(&ws);
     ws.enable(true);
 
-    // Starte den Webserver
+    // Start the web server
     server.begin();
-    Serial.println("Webserver gestartet");
+    Serial.println("Web server started");
 }

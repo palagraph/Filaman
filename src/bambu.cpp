@@ -19,6 +19,7 @@ TaskHandle_t BambuMqttTask;
 
 String report_topic = "";
 //String request_topic = "";
+
 const char* bambu_username = "bblp";
 const char* bambu_ip = nullptr;
 const char* bambu_accesscode = nullptr;
@@ -27,10 +28,12 @@ bool bambu_connected = false;
 bool autoSendToBambu = false;
 int autoSetToBambuSpoolId = 0;
 
-// Globale Variablen für AMS-Daten
+// Global variables for AMS data
+
 int ams_count = 0;
-String amsJsonData;  // Speichert das fertige JSON für WebSocket-Clients
-AMSData ams_data[MAX_AMS];  // Definition des Arrays;
+String amsJsonData;  // Saves the finished JSON for webocket clients
+AMSData ams_data[MAX_AMS];  // Definition of the array;
+
 
 bool saveBambuCredentials(const String& ip, const String& serialnr, const String& accesscode, bool autoSend, const String& autoSendTime) {
     if (BambuMqttTask) {
@@ -45,11 +48,12 @@ bool saveBambuCredentials(const String& ip, const String& serialnr, const String
     doc["autoSendTime"] = (autoSendTime != "") ? autoSendTime.toInt() : autoSetBambuAmsCounter;
 
     if (!saveJsonValue("/bambu_credentials.json", doc)) {
-        Serial.println("Fehler beim Speichern der Bambu-Credentials.");
+        Serial.println("Errors when saving the Bambu credentials.");
         return false;
     }
 
-    // Dynamische Speicherallokation für die globalen Pointer
+    // Dynamic memory allocation for global pointers
+
     bambu_ip = ip.c_str();
     bambu_accesscode = accesscode.c_str();
     bambu_serialnr = serialnr.c_str();
@@ -65,7 +69,8 @@ bool saveBambuCredentials(const String& ip, const String& serialnr, const String
 bool loadBambuCredentials() {
     JsonDocument doc;
     if (loadJsonValue("/bambu_credentials.json", doc) && doc["bambu_ip"].is<String>()) {
-        // Temporäre Strings für die Werte
+        // Temporary strings for the values
+
         String ip = doc["bambu_ip"].as<String>();
         String code = doc["bambu_accesscode"].as<String>();
         String serial = doc["bambu_serialnr"].as<String>();
@@ -76,13 +81,15 @@ bool loadBambuCredentials() {
         code.trim();
         serial.trim();
 
-        // Dynamische Speicherallokation für die globalen Pointer
+        // Dynamic memory allocation for global pointers
+
         bambu_ip = strdup(ip.c_str());
         bambu_accesscode = strdup(code.c_str());
         bambu_serialnr = strdup(serial.c_str());
 
         report_topic = "device/" + String(bambu_serialnr) + "/report";
         //request_topic = "device/" + String(bambu_serialnr) + "/request";
+
         return true;
     }
     Serial.println("Keine gültigen Bambu-Credentials gefunden.");
@@ -95,10 +102,12 @@ struct FilamentResult {
 };
 
 FilamentResult findFilamentIdx(String brand, String type) {
-    // JSON-Dokument für die Filament-Daten erstellen
+    // Create the JSON document for the filament data
+
     JsonDocument doc;
     
-    // Laden der own_filaments.json
+    // Load the own_filaments.json
+
     String ownFilament = "";
     if (!loadJsonValue("/own_filaments.json", doc)) 
     {
@@ -106,21 +115,25 @@ FilamentResult findFilamentIdx(String brand, String type) {
     }
     else
     {
-        // Durchsuche direkt nach dem Type als Schlüssel
+        // Search through the type as a key
+
         if (doc[type].is<String>()) {
             ownFilament = doc[type].as<String>();
         }
         doc.clear();
     }
 
-    // Laden der bambu_filaments.json
+    // Load the bambu_filaments.json
+
     if (!loadJsonValue("/bambu_filaments.json", doc)) 
     {
         Serial.println("Fehler beim Laden der Filament-Daten");
-        return {"GFL99", "PLA"}; // Fallback auf Generic PLA
+        return {"GFL99", "PLA"}; // Fallback on Generic Pla
+
     }
 
-    // Wenn eigener Typ
+    // If your own type
+
     if (ownFilament != "")
     {
         if (doc[ownFilament].is<String>()) 
@@ -129,7 +142,8 @@ FilamentResult findFilamentIdx(String brand, String type) {
         }
     }
 
-    // 1. Erst versuchen wir die exakte Brand + Type Kombination zu finden
+    // 1. First we try to find the exact brand + type combination
+
     String searchKey;
     if (brand == "Bambu" || brand == "Bambulab") {
         searchKey = "Bambu " + type;
@@ -143,19 +157,22 @@ FilamentResult findFilamentIdx(String brand, String type) {
         searchKey = "PolyTerra " + type;
     }
 
-    // Durchsuche alle Einträge nach der Brand + Type Kombination
+    // Search through all entries according to the Brand + Type combination
+
     for (JsonPair kv : doc.as<JsonObject>()) {
         if (kv.value().as<String>() == searchKey) {
             return {kv.key().c_str(), kv.value().as<String>()};
         }
     }
 
-    // 2. Wenn nicht gefunden, zerlege den type String in Wörter und suche nach jedem Wort
-    // Sammle alle vorhandenen Filamenttypen aus der JSON
+    // 2. If not found, disassemble the Type String into words and search for every word
+    // Collect all existing filament types from the JSON
+
     std::vector<String> knownTypes;
     for (JsonPair kv : doc.as<JsonObject>()) {
         String value = kv.value().as<String>();
-        // Extrahiere den Typ ohne Markennamen
+        // Extract the type without a brand name
+
         if (value.indexOf(" ") != -1) {
             value = value.substring(value.indexOf(" ") + 1);
         }
@@ -164,14 +181,17 @@ FilamentResult findFilamentIdx(String brand, String type) {
         }
     }
 
-    // Zerlege den Input-Type in Wörter
+    // Dismantle the input type into words
+
     String typeStr = type;
     typeStr.trim();
     
-    // Durchsuche für jedes bekannte Filament, ob es im Input vorkommt
+    // Search for every known filament, whether it occurs in the input
+
     for (const String& knownType : knownTypes) {
         if (typeStr.indexOf(knownType) != -1) {
-            // Suche nach diesem Typ in der Original-JSON
+            // Search for this type in the original Json
+
             for (JsonPair kv : doc.as<JsonObject>()) {
                 String value = kv.value().as<String>();
                 if (value.indexOf(knownType) != -1) {
@@ -181,7 +201,8 @@ FilamentResult findFilamentIdx(String brand, String type) {
         }
     }
 
-    // 3. Wenn immer noch nichts gefunden, gebe GFL99 zurück (Generic PLA)
+    // 3. If nothing still found, return GFL99 (Generic Pla)
+
     return {"GFL99", "PLA"};
 }
 
@@ -200,7 +221,8 @@ bool setBambuSpool(String payload) {
     Serial.println("Spool settings in");
     Serial.println(payload);
 
-    // Parse the JSON
+    // PARSE THE JSON
+
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, payload);
     if (error) {
@@ -223,7 +245,8 @@ bool setBambuSpool(String payload) {
         if (brand != "" && type != "") {
             FilamentResult result = findFilamentIdx(brand, type);
             tray_info_idx = result.key;
-            type = result.type;  // Aktualisiere den type mit dem gefundenen Basistyp
+            type = result.type;  // Update the type with the basic type found
+
         }
     }
     String setting_id = doc["bambu_setting_id"].as<String>();
@@ -239,11 +262,13 @@ bool setBambuSpool(String payload) {
     doc["print"]["nozzle_temp_min"] = minTemp;
     doc["print"]["nozzle_temp_max"] = maxTemp;
     doc["print"]["tray_type"] = type;
-    //doc["print"]["cali_idx"] = (cali_idx != "") ? cali_idx : "";
+    //doc ["print"] ["Cali_idx"] = (Cali_idx! = "")? Cali_idx: "";
+
     doc["print"]["tray_info_idx"] = tray_info_idx;
     doc["print"]["setting_id"] = setting_id;
     
     // Serialize the JSON
+
     String output;
     serializeJson(doc, output);
 
@@ -267,9 +292,11 @@ bool setBambuSpool(String payload) {
         doc["print"]["nozzle_diameter"] = "0.4";
         doc["print"]["cali_idx"] = cali_idx.toInt();
         doc["print"]["tray_id"] = trayId < 200 ? trayId : 254;
-        //doc["print"]["ams_id"] = amsId < 200 ? amsId : 255;
+        //doc ["print"] ["ams_id"] = amsid <200? AMSID: 255;
+
 
         // Serialize the JSON
+
         String output;
         serializeJson(doc, output);
 
@@ -290,12 +317,14 @@ bool setBambuSpool(String payload) {
 }
 
 void autoSetSpool(int spoolId, uint8_t trayId) {
-    // wenn neue spule erkannt und autoSetToBambu > 0
+    // When new spools recognized and autosettobambu> 0
+
     JsonDocument spoolInfo = fetchSingleSpoolInfo(spoolId);
 
     if (!spoolInfo.isNull())
     {
-        // AMS und TRAY id ergänzen
+        // AMS and Tray ID complement
+
         spoolInfo["amsId"] = 0;
         spoolInfo["trayId"] = trayId;
 
@@ -305,11 +334,13 @@ void autoSetSpool(int spoolId, uint8_t trayId) {
         setBambuSpool(spoolInfo.as<String>());
     }
 
-    // id wieder zurücksetzen damit abgeschlossen
+    // Reset the ID with it completed
+
     autoSetToBambuSpoolId = 0;
 }
 
-// init
+// Init
+
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     String message;
 
@@ -317,7 +348,8 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         message += (char)payload[i];
     }
 
-    // JSON-Dokument parsen
+    // JSON document Parsen
+
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, message);
     if (error) 
@@ -327,7 +359,8 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         return;
     }
 
-    // Wenn bambu auto set spool aktiv und eine spule erkannt und mqtt meldung das neue spule im ams
+    // When Bambu Auto Set Spool is actively recognized and a spool and MQTT report the new spool in the AMS
+
     if (autoSendToBambu && autoSetToBambuSpoolId > 0 && 
         doc["print"]["command"].as<String>() == "push_status" && doc["print"]["ams"]["tray_pre"].as<uint8_t>()
         && !doc["print"]["ams"]["ams"].as<JsonArray>())
@@ -335,10 +368,12 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         autoSetSpool(autoSetToBambuSpoolId, doc["print"]["ams"]["tray_pre"].as<uint8_t>());
     }
 
-    // Prüfen, ob "print->upgrade_state" und "print.ams.ams" existieren
+    // Check whether "print-> upgrade_state" and "print.ams.ams" exist
+
     if (doc["print"]["upgrade_state"].is<JsonObject>()) 
     {
-        // Prüfen ob AMS-Daten vorhanden sind
+        // Check whether there are AMS data
+
         if (!doc["print"]["ams"].is<JsonObject>() || !doc["print"]["ams"]["ams"].is<JsonArray>()) 
         {
             return;
@@ -346,16 +381,19 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
 
         JsonArray amsArray = doc["print"]["ams"]["ams"].as<JsonArray>();
         
-        // Prüfe ob sich die AMS-Daten geändert haben
+        // Check whether the AMS data have changed
+
         bool hasChanges = false;
         
-        // Vergleiche jedes AMS und seine Trays
+        // Compare every AMS and its trays
+
         for (int i = 0; i < amsArray.size() && !hasChanges; i++) {
             JsonObject amsObj = amsArray[i];
             int amsId = amsObj["id"].as<uint8_t>();
             JsonArray trayArray = amsObj["tray"].as<JsonArray>();
             
-            // Finde das entsprechende AMS in unseren Daten
+            // Find the corresponding AMS in our data
+
             int storedIndex = -1;
             for (int k = 0; k < ams_count; k++) {
                 if (ams_data[k].ams_id == amsId) {
@@ -369,7 +407,8 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
                 break;
             }
 
-            // Vergleiche die Trays
+            // Compare the trays
+
             for (int j = 0; j < trayArray.size() && j < 4 && !hasChanges; j++) {
                 JsonObject trayObj = trayArray[j];
                 if (trayObj["tray_info_idx"].as<String>() != ams_data[storedIndex].trays[j].tray_info_idx ||
@@ -382,7 +421,8 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
             }
         }
 
-        // Prüfe die externe Spule
+        // Check the external spool
+
         if (!hasChanges && doc["print"]["vt_tray"].is<JsonObject>()) {
             JsonObject vtTray = doc["print"]["vt_tray"];
             bool foundExternal = false;
@@ -399,20 +439,24 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
                     break;
                 }
             }
-            //if (!foundExternal) hasChanges = true;
+            //If (! FOUNDEXTernal) Haschanges = True;
+
         }
 
         if (!hasChanges) return;
 
-        // Fortfahren mit der bestehenden Verarbeitung, da Änderungen gefunden wurden
+        // Continue with the existing workmanship, since changes were found
+
         ams_count = amsArray.size();
         
         for (int i = 0; i < ams_count && i < 16; i++) {
             JsonObject amsObj = amsArray[i];
             JsonArray trayArray = amsObj["tray"].as<JsonArray>();
 
-            ams_data[i].ams_id = i; // Setze die AMS-ID
-            for (int j = 0; j < trayArray.size() && j < 4; j++) { // Annahme: Maximal 4 Trays pro AMS
+            ams_data[i].ams_id = i; // Set the AMS ID
+
+            for (int j = 0; j < trayArray.size() && j < 4; j++) { // Acceptance: a maximum of 4 trays per AMS
+
                 JsonObject trayObj = trayArray[j];
 
                 ams_data[i].trays[j].id = trayObj["id"].as<uint8_t>();
@@ -427,15 +471,20 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
             }
         }
         
-        // Setze ams_count auf die Anzahl der normalen AMS
+        // Put AMS_COUNT on the number of normal AMS
+
         ams_count = amsArray.size();
 
-        // Wenn externe Spule vorhanden, füge sie hinzu
+        // If there are external spools, add them
+
         if (doc["print"]["vt_tray"].is<JsonObject>()) {
             JsonObject vtTray = doc["print"]["vt_tray"];
-            int extIdx = ams_count;  // Index für externe Spule
-            ams_data[extIdx].ams_id = 255;  // Spezielle ID für externe Spule
-            ams_data[extIdx].trays[0].id = 254;  // Spezielle ID für externes Tray
+            int extIdx = ams_count;  // Index for external spool
+
+            ams_data[extIdx].ams_id = 255;  // Special ID for external spool
+
+            ams_data[extIdx].trays[0].id = 254;  // Special ID for external tray
+
             ams_data[extIdx].trays[0].tray_info_idx = vtTray["tray_info_idx"].as<String>();
             ams_data[extIdx].trays[0].tray_type = vtTray["tray_type"].as<String>();
             ams_data[extIdx].trays[0].tray_sub_brands = vtTray["tray_sub_brands"].as<String>();
@@ -453,10 +502,12 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
                 ams_data[extIdx].trays[0].setting_id = "";
                 ams_data[extIdx].trays[0].cali_idx = "";
             }
-            ams_count++;  // Erhöhe ams_count für die externe Spule
+            ams_count++;  // Increase ams_count for the external spool
+
         }
 
-        // Erstelle JSON für WebSocket-Clients
+        // Create JSON for web socket clients
+
         JsonDocument wsDoc;
         JsonArray wsArray = wsDoc.to<JsonArray>();
 
@@ -486,19 +537,23 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         sendAmsData(nullptr);
     }
     
-    // Neue Bedingung für ams_filament_setting
+    // New condition for ams_filament_setting
+
     if (doc["print"]["command"] == "ams_filament_setting") {
         int amsId = doc["print"]["ams_id"].as<int>();
         int trayId = doc["print"]["tray_id"].as<int>();
         String settingId = doc["print"]["setting_id"].as<String>();
 
-        // Finde das entsprechende AMS und Tray
+        // Find the corresponding AMS and Tray
+
         for (int i = 0; i < ams_count; i++) {
             if (ams_data[i].ams_id == amsId) {
-                // Update setting_id im entsprechenden Tray
+                // Update Setting_ID in the corresponding tray
+
                 ams_data[i].trays[trayId].setting_id = settingId;
                 
-                // Erstelle neues JSON für WebSocket-Clients
+                // Create new JSON for website clients
+
                 JsonDocument wsDoc;
                 JsonArray wsArray = wsDoc.to<JsonArray>();
 
@@ -523,11 +578,13 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
                     }
                 }
 
-                // Aktualisiere das globale amsJsonData
+                // Update the global Amsjsondata
+
                 amsJsonData = "";
                 serializeJson(wsArray, amsJsonData);
                 
-                // Sende an WebSocket Clients
+                // Send to webocket clients
+
                 Serial.println("Filament setting updated");
                 sendAmsData(nullptr);
                 break;
@@ -537,16 +594,19 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void reconnect() {
-    // Loop until we're reconnected
+    // Loop unstil we're reconnected
+
     while (!client.connected()) {
         Serial.println("Attempting MQTT connection...");
         bambu_connected = false;
         oledShowTopRow();
 
         // Attempt to connect
+
         if (client.connect(bambu_serialnr, bambu_username, bambu_accesscode)) {
             Serial.println("... re-connected");
             // ... and resubscribe
+
             client.subscribe(report_topic.c_str());
             bambu_connected = true;
             oledShowTopRow();
@@ -557,6 +617,7 @@ void reconnect() {
             bambu_connected = false;
             oledShowTopRow();
             // Wait 5 seconds before retrying
+
             yield();
             vTaskDelay(5000 / portTICK_PERIOD_MS);
         }
@@ -582,7 +643,8 @@ void mqtt_loop(void * parameter) {
 }
 
 bool setupMqtt() {
-    // Wenn Bambu Daten vorhanden
+    // If BAMBU data is available
+
     bool success = loadBambuCredentials();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
@@ -599,15 +661,18 @@ bool setupMqtt() {
         sslClient.setInsecure();
         client.setServer(bambu_ip, 8883);
 
-        // Verbinden mit dem MQTT-Server
+        // Connect to the MQTT server
+
         bool connected = true;
         if (client.connect(bambu_serialnr, bambu_username, bambu_accesscode)) 
         {
             client.setCallback(mqtt_callback);
             client.setBufferSize(5120);
-            // Optional: Topic abonnieren
+            // Optional: Subscribe to Topic
+
             client.subscribe(report_topic.c_str());
-            //client.subscribe(request_topic.c_str());
+            //Client.subscribe(request topic.c str());
+
             Serial.println("MQTT-Client initialisiert");
 
             oledShowMessage("Bambu Connected");
@@ -618,10 +683,10 @@ bool setupMqtt() {
                 mqtt_loop, /* Function to implement the task */
                 "BambuMqtt", /* Name of the task */
                 10000,  /* Stack size in words */
-                NULL,  /* Task input parameter */
+                NULL,  /* Task Input parameter */
                 mqttTaskPrio,  /* Priority of the task */
                 &BambuMqttTask,  /* Task handle. */
-                mqttTaskCore); /* Core where the task should run */
+                mqttTaskCore); /* Core Where the Task Should Run */
         } 
         else 
         {

@@ -29,7 +29,7 @@
         </div>
         <nav style="display: flex; gap: 1rem;">
             <a href="/">Start</a>
-            <a href="/waage">Scale</a>
+            <a href="/scale">Scale</a>
             <a href="/spoolman">Spoolman/Bambu</a>
             <a href="/about">About</a>
             <a href="/upgrade">Upgrade</a>
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <!-- Neue Kalibrierungskarte -->
+        <!-- New calibration card -->
         <div id="calibrationCard" class="card mt-3" style="display: none;">
             <div class="card-body">
                 <h5 class="card-title">Calibration done</h5>
@@ -88,13 +88,13 @@
             ws = new WebSocket(`ws://${window.location.hostname}/ws`);
             
             ws.onopen = () => {
-                console.log('WebSocket verbunden');
+                console.log('Webocket connected');
                 statusMessage.innerHTML = 'Scale connected';
                 enableButtons(true);
             };
 
             ws.onclose = () => {
-                console.log('WebSocket getrennt');
+                console.log('Websocket disconnected');
                 statusMessage.innerHTML = 'Scale connection lost';
                 enableButtons(false);
                 setTimeout(connectWebSocket, 2000);
@@ -120,7 +120,7 @@
         }
 
         document.getElementById('calibrateBtn').addEventListener('click', () => {
-            // Kalibrierungskarte anzeigen
+            // Show calibration card
             document.getElementById('calibrationCard').style.display = 'block';
         });
 
@@ -129,7 +129,7 @@
                 type: 'scale',
                 payload: 'calibrate'
             }));
-            // Optional: Kalibrierungskarte nach dem Start ausblenden
+            // Optional: Hide the calibration card after the start
             document.getElementById('calibrationCard').style.display = 'none';
         });
 
@@ -140,7 +140,7 @@
             }));
         });
 
-        // WebSocket-Verbindung beim Laden der Seite initiieren
+        // Initiate the web socket connection when loading the page
         connectWebSocket();
     </script>
 </body>

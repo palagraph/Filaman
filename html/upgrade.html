@@ -29,7 +29,7 @@
         </div>
         <nav style="display: flex; gap: 1rem;">
             <a href="/">Start</a>
-            <a href="/waage">Scale</a>
+            <a href="/scale">Scale</a>
             <a href="/spoolman">Spoolman/Bambu</a>
             <a href="/about">About</a>
             <a href="/upgrade">Upgrade</a>
@@ -108,10 +108,10 @@
                 try {
                     const data = JSON.parse(event.data);
                     if (data.type === "updateProgress" && updateInProgress) {
-                        // Zeige Fortschrittsbalken
+                        // Show progress bars
                         progressContainer.style.display = 'block';
                         
-                        // Aktualisiere den Fortschritt nur wenn er größer ist
+                        // Only update progress if it is larger
                         const newProgress = parseInt(data.progress);
                         if (!isNaN(newProgress) && newProgress >= lastReceivedProgress) {
                             progress.style.width = newProgress + '%';
@@ -119,13 +119,13 @@
                             lastReceivedProgress = newProgress;
                         }
                         
-                        // Zeige Status-Nachricht
+                        // Show status message
                         if (data.message || data.status) {
                             status.textContent = data.message || getStatusMessage(data.status);
                             status.className = 'status success';
                             status.style.display = 'block';
                             
-                            // Starte Reload wenn Update erfolgreich
+                            // Start reload if update is successful
                             if (data.status === 'success' || lastReceivedProgress >= 98) {
                                 clearTimeout(wsReconnectTimer);
                                 setTimeout(() => {
@@ -141,7 +141,7 @@
 
             ws.onclose = function() {
                 if (updateInProgress) {
-                    // Wenn der Fortschritt hoch genug ist, gehen wir von einem erfolgreichen Update aus
+                    // If the progress is high enough, we assume a successful update
                     if (lastReceivedProgress >= 85) {
                         status.textContent = "Update appears successful! Device is restarting... Page will reload in 30 seconds.";
                         status.className = 'status success';
@@ -151,7 +151,7 @@
                             window.location.href = '/';
                         }, 30000);
                     } else {
-                        // Versuche Reconnect bei niedrigem Fortschritt
+                        // Try Reconnect at low progress
                         wsReconnectTimer = setTimeout(connectWebSocket, 1000);
                     }
                 }

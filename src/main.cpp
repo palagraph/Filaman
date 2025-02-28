@@ -15,41 +15,53 @@
 #include "esp_task_wdt.h"
 #include "commonFS.h"
 
-// ##### SETUP #####
+// ##### SET UP #####
+
 void setup() {
   Serial.begin(115200);
 
   uint64_t chipid;
 
   chipid = ESP.getEfuseMac(); //The chip ID is essentially its MAC address(length: 6 bytes).
-  Serial.printf("ESP32 Chip ID = %04X", (uint16_t)(chipid >> 32)); //print High 2 bytes
-  Serial.printf("%08X\n", (uint32_t)chipid); //print Low 4bytes.
 
-  // Initialize SPIFFS
+  Serial.printf("ESP32 Chip ID = %04X", (uint16_t)(chipid >> 32)); //Print high 2 bytes
+
+  Serial.printf("%08X\n", (uint32_t)chipid); //Print low 4bytes.
+
+
+  // Initialize Spiffs
+
   initializeSPIFFS();
 
-  // Start Display
+  // Start display
+
   setupDisplay();
   oledShowMessage("FilaMan v"+String(VERSION));
 
-  // WiFiManager
+  // Wi fi manager
+
   initWiFi();
 
-  // Webserver
-  Serial.println("Starte Webserver");
+  // Web server
+
+  Serial.println("Start Webserver");
   setupWebserver(server);
 
-  // Spoolman API
+  // Spoolman Api
   // api.cpp
+
   initSpoolman();
 
   // Bambu MQTT
   // bambu.cpp
+
   setupMqtt();
 
   // mDNS
-  Serial.println("Starte MDNS");
-  if (!MDNS.begin("filaman")) {   // Set the hostname to "esp32.local"
+
+  Serial.println("Start MDNS");
+  if (!MDNS.begin("filaman")) {   // Set the Hostname to "Esp32.local"
+
     Serial.println("Error setting up MDNS responder!");
     while(1) {
       delay(1000);
@@ -76,44 +88,55 @@ void setup() {
     }
   }
   
-  // WDT initialisieren mit 10 Sekunden Timeout
-  bool panic = true; // Wenn true, löst ein WDT-Timeout einen System-Panik aus
+  // Initialize Wdt with 10 seconds timeout
+
+  bool panic = true; // If true, a WDT timeout triggers a system panic
+
   esp_task_wdt_init(10, panic); 
 
-  // Aktuellen Task (loopTask) zum Watchdog hinzufügen
+  // Add current task (looptask) to the watchdog
+
   esp_task_wdt_add(NULL);
 
-  // Optional: Andere Tasks zum Watchdog hinzufügen, falls nötig
-  // esp_task_wdt_add(task_handle);
+  // Optional: Add other tasks to the watchdog, if necessary
+  // ESP_ASK_WDT_ADD (Task_handle);
+
 }
 
 
 unsigned long lastWeightReadTime = 0;
 const unsigned long weightReadInterval = 1000; // 1 second
 
+
 unsigned long lastAutoSetBambuAmsTime = 0;
 const unsigned long autoSetBambuAmsInterval = 1000; // 1 second
+
 uint8_t autoAmsCounter = 0;
 
 unsigned long lastAmsSendTime = 0;
 const unsigned long amsSendInterval = 60000; // 1 minute
 
+
 uint8_t weightSend = 0;
 int16_t lastWeight = 0;
 uint8_t wifiErrorCounter = 0;
 
-// ##### PROGRAM START #####
+// ##### Program Start ######
+
 void loop() {
   unsigned long currentMillis = millis();
 
   // Send AMS Data min every Minute
+
   if (currentMillis - lastAmsSendTime >= amsSendInterval) 
   {
     lastAmsSendTime = currentMillis;
-    //sendAmsData(nullptr);
+    //Send ams data (nullptr);
+
   }
 
-  // Wenn Bambu auto set Spool aktiv
+  // When Bambu Auto Set Spool is active
+
   if (autoSendToBambu && autoSetToBambuSpoolId > 0 && currentMillis - lastAutoSetBambuAmsTime >= autoSetBambuAmsInterval) 
   {
     if (hasReadRfidTag == 0)
@@ -136,7 +159,8 @@ void loop() {
   }
   
 
-  // Wenn Waage nicht Kalibriert
+  // If scale not calibrated
+
   if (scaleCalibrated == 3) 
   {
     oledShowMessage("Scale not calibrated!");
@@ -147,19 +171,22 @@ void loop() {
     return;
   } 
 
-  // Ausgabe der Waage auf Display
+  // Output of the scale on display
+
   if (pauseMainTask == 0 && weight != lastWeight && hasReadRfidTag == 0 && (!autoSendToBambu || autoSetToBambuSpoolId == 0))
   {
     (weight < 2) ? ((weight < -2) ? oledShowMessage("!! -0") : oledShowWeight(0)) : oledShowWeight(weight);
   }
 
 
-  // Wenn Timer abgelaufen und nicht gerade ein RFID-Tag geschrieben wird
+  // When timers expired and an RFID tag is not written
+
   if (currentMillis - lastWeightReadTime >= weightReadInterval && hasReadRfidTag < 3)
   {
     lastWeightReadTime = currentMillis;
 
-    // Prüfen ob die Waage korrekt genullt ist
+    // Check whether the scale is correctly zeroed
+
     if ((weight > 0 && weight < 5) || weight < 0)
     {
       scale_tare_counter++;
@@ -169,7 +196,8 @@ void loop() {
       scale_tare_counter = 0;
     }
 
-    // Prüfen ob das Gewicht gleich bleibt und dann senden
+    // Check whether the weight remains the same and then send
+
     if (weight == lastWeight && weight > 5)
     {
       weigthCouterToApi++;
@@ -182,6 +210,7 @@ void loop() {
   }
 
   // reset weight counter after writing tag
+
   if (currentMillis - lastWeightReadTime >= weightReadInterval && hasReadRfidTag > 1)
   {
     weigthCouterToApi = 0;
@@ -189,7 +218,8 @@ void loop() {
   
   lastWeight = weight;
 
-  // Wenn ein Tag mit SM id erkannte wurde und der Waage Counter anspricht an SM Senden
+  // If a tag is detected with SM ID and the scale counter responds, send to SM.
+
   if (spoolId != "" && weigthCouterToApi > 3 && weightSend == 0 && hasReadRfidTag == 1) {
     oledShowIcon("loading");
     if (updateSpoolWeight(spoolId, weight)) 

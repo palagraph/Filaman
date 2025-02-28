@@ -1,17 +1,17 @@
 /* Allgemeine Stile */
 :root {
-    --primary-color: #63bb67;     /* Hauptfarbe Grün */
-    --primary-light: #8cd590;     /* Helleres Grün */
-    --background-green: #28902D;  /* Dunkleres Hintergrund-Grün */
-    --text-color: #1e293b;       /* Dunkelgrau für Text */
-    --inner-box-bg: #63bb67;     /* Grüner Hintergrund für innere Boxen */
-    --inner-text-color: #ffffff; /* Weißer Text in Boxen */
-    --stat-value-color: #ffd700; /* Gelber Text für Werte */
-    --header-bg: #28902D; /* Hintergrundfarbe für den Header */
-    --header-border: #f7208c; /* Pinke Randfarbe für den Header */
-    --accent-color: #d51274; /* Pink für Akzentfarben */
-    --header-text: #40e8b7; /* Türkisfarbener Text */
-    --background-light: #63bb67;  /* Helleres Grün für Container */
+    --primary-color: #63bb67;     /* Main color green */
+    --primary-light: #8cd590;     /* Brighter green */
+    --background-green: #28902D;  /* Darker background green */
+    --text-color: #1e293b;       /* Dark gray for text */
+    --inner-box-bg: #63bb67;     /* Green background for internal boxes */
+    --inner-text-color: #ffffff; /* White text in boxes */
+    --stat-value-color: #ffd700; /* Yellow text for values */
+    --header-bg: #28902D; /* Background color for the header */
+    --header-border: #f7208c; /* Pink edge color for the header */
+    --accent-color: #d51274; /* Pink for accent colors */
+    --header-text: #40e8b7; /* Turquoise text */
+    --background-light: #63bb67;  /* Brighter green for containers */
     --border-color: rgba(255, 255, 255, 0.1); /* Subtile Borders */
     --card-background: rgba(255, 255, 255, 0.15);
     --card-shadow: 0 4px 15px rgba(31, 41, 55, 0.1);
@@ -33,7 +33,7 @@ body {
     min-height: 100vh;
 }
 
-/* Header und Navigation */
+/* Header and navigation */
 .navbar { 
     background: var(--header-bg);
     border: 2px solid var(--header-border);
@@ -75,7 +75,7 @@ body {
     transform: translateY(-1px);
 }
 
-/* Logo und Text im Header */
+/* Logo and text in the header */
 .logo-text {
     display: flex;
     flex-direction: column;
@@ -97,7 +97,7 @@ body {
     text-shadow: 1px 1px 0 var(--accent-color);
 }
 
-/* Status Container in der Navbar */
+/* Status container in the nav bar */
 .status-container {
     background: var(--inner-box-bg) !important;
     border-radius: 1rem;
@@ -150,7 +150,7 @@ body {
     border-radius: 0.5rem;
 }
 
-/* Inhalt */
+/* Contents */
 .container { 
     padding: 20px; 
     width: 100%;
@@ -161,7 +161,7 @@ body {
     margin-top: 20px; /* Platz für die fixe Navbar */
 }
 
-/* Überschriften */
+/* Headings */
 h1 { 
     color: #007bff; 
     text-align: center; 
@@ -228,7 +228,7 @@ button:hover {
     background-color: #0056b3; 
 }
 
-/* Statusnachricht */
+/* Status message */
 #statusMessage { 
     margin-top: 10px; 
     padding: 10px; 
@@ -277,7 +277,7 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Karten-Stil für optische Trennung */
+/* Card style for visual separation */
 .card {
     background: var(--primary-color);
     width: 500px;
@@ -287,12 +287,12 @@ a:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Versteckte Elemente */
+/* Hidden elements */
 .hidden {
     display: none;
 }
 
-/* Dropdown-Stil */
+/* Dropdown style */
 .styled-select {
     width: 100%;
     padding: 12px 15px;
@@ -329,7 +329,7 @@ a:hover {
     opacity: 0.7;
 }
 
-/* NFC-Status */
+/* NFC status */
 .nfc-status {
     font-weight: bold;
     margin-top: 10px;
@@ -350,7 +350,7 @@ a:hover {
     color: red;
 }
 
-/* Füge diese neuen Styles zu deiner style.css hinzu */
+/* Add these new styles to your style.css */
 
 .three-column-layout {
     display: flex;
@@ -362,7 +362,7 @@ a:hover {
 
 .column {
     flex: 1;
-    min-width: 0; /* Verhindert Überlauf bei flex-Elementen */
+    min-width: 0; /* Prevents overflow in flex elements */
 }
 
 .feature-box {
@@ -565,7 +565,7 @@ a:hover {
 .nfc-actions {
     display: flex;
     gap: 10px;
-    justify-content: center; /* Zentriert das div */
+    justify-content: center; /* Center the Div */
 }
 
 .btn {
@@ -629,7 +629,7 @@ a:hover {
     padding: 8px 15px;
     font-size: 16px;
     background-color: #fff;
-    color: #000; /* Standard Textfarbe für alles außer dem Farbblock */
+    color: #000; /* Standard text color for everything except the color block */
 }
 
 #filamentSelect option::first-letter {
@@ -681,7 +681,7 @@ a:hover {
     position: relative;
     width: 100%;
     font-family: inherit;
-    cursor: default; /* Container selbst soll normalen Cursor haben */
+    cursor: default; /* The container itself should have a normal cursor. */
     color: black;
 }
 
@@ -792,7 +792,7 @@ a:hover {
     }
 }
 
-/* Neue Styles für die Statistiken */
+/* New styles for the statistics */
 .statistics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -838,7 +838,7 @@ a:hover {
     font-weight: 500;
 }
 
-/* Responsive Design Anpassung */
+/* Responsive design adaptation */
 @media (max-width: 768px) {
     .statistics-grid {
         grid-template-columns: 1fr;
@@ -900,7 +900,7 @@ a:hover {
     font-weight: 500;
 }
 
-/* Buttons und klickbare Elemente */
+/* Buttons and clickable elements */
 button, 
 input[type="submit"],
 .dropdown-button,

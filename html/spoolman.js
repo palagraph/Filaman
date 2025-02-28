@@ -1,8 +1,8 @@
-// Globale Variablen
+// Global variables
 let spoolmanUrl = '';
 let spoolsData = [];
 
-// Hilfsfunktionen für Datenmanipulation
+// Auxiliary functions for data manipulation
 function processSpoolData(data) {
     return data.map(spool => ({
         id: spool.id,
@@ -13,7 +13,7 @@ function processSpoolData(data) {
     }));
 }
 
-// Dropdown-Funktionen
+// Dropdown functions
 function populateVendorDropdown(data, selectedSmId = null) {
     const vendorSelect = document.getElementById("vendorSelect");
     if (!vendorSelect) {
@@ -26,18 +26,18 @@ function populateVendorDropdown(data, selectedSmId = null) {
         return;
     }
 
-    // Separate Objekte für alle Hersteller und gefilterte Hersteller
+    // Separate objects for all manufacturers and filtered manufacturers
     const allVendors = {};
     const filteredVendors = {};
 
-    vendorSelect.innerHTML = '<option value="">Bitte wählen...</option>';
+    vendorSelect.innerHTML = '<option value="">Please choose ...</option>';
 
     let vendorIdToSelect = null;
     let totalSpools = 0;
     let spoolsWithoutTag = 0;
     let totalWeight = 0;
     let totalLength = 0;
-    // Neues Objekt für Material-Gruppierung
+    // New object for material grouping
     const materials = {};
 
     data.forEach(spool => {
@@ -47,13 +47,14 @@ function populateVendorDropdown(data, selectedSmId = null) {
 
         totalSpools++;
         
-        // Material zählen und gruppieren
+        // Count and group material
         if (spool.filament.material) {
-            const material = spool.filament.material.toUpperCase(); // Normalisierung
+            const material = spool.filament.material.toUpperCase(); // normalization
+
             materials[material] = (materials[material] || 0) + 1;
         }
 
-        // Addiere Gewicht und Länge
+        // Add weight and length
         if (spool.remaining_weight) {
             totalWeight += spool.remaining_weight;
         }
@@ -72,12 +73,12 @@ function populateVendorDropdown(data, selectedSmId = null) {
             spoolsWithoutTag++;
         }
 
-        // Alle Hersteller sammeln
+        // Collect all manufacturers
         if (!allVendors[vendor.id]) {
             allVendors[vendor.id] = vendor.name;
         }
 
-        // Gefilterte Hersteller für Dropdown
+        // Filtered manufacturer for dropdown
         if (!filteredVendors[vendor.id]) {
             if (!onlyWithoutSmId.checked || !hasValidNfcId) {
                 filteredVendors[vendor.id] = vendor.name;
@@ -85,19 +86,19 @@ function populateVendorDropdown(data, selectedSmId = null) {
         }
     });
 
-    // Nach der Schleife: Formatierung der Gesamtlänge
+    // After the loop: formatting of the total length
     console.log("Total Lenght: ", totalLength);
     const formattedLength = totalLength > 1000 
         ? (totalLength / 1000).toFixed(2) + " km" 
         : totalLength.toFixed(2) + " m";
 
-    // Formatierung des Gesamtgewichts (von g zu kg zu t)
-    const weightInKg = totalWeight / 1000;  // erst in kg umrechnen
+    // Formatting of the total weight (from g to kg to t)
+    const weightInKg = totalWeight / 1000;  // Only convert into KG
     const formattedWeight = weightInKg > 1000 
         ? (weightInKg / 1000).toFixed(2) + " t" 
         : weightInKg.toFixed(2) + " kg";
 
-    // Dropdown mit gefilterten Herstellern befüllen
+    // Fill the dropdown with filtered manufacturers
     Object.entries(filteredVendors).forEach(([id, name]) => {
         const option = document.createElement("option");
         option.value = id;
@@ -110,15 +111,15 @@ function populateVendorDropdown(data, selectedSmId = null) {
     // Zeige die Gesamtzahl aller Hersteller an
     document.getElementById("totalVendors").textContent = Object.keys(allVendors).length;
     
-    // Neue Statistiken hinzufügen
+    // Add new statistics
     document.getElementById("totalWeight").textContent = formattedWeight;
     document.getElementById("totalLength").textContent = formattedLength;
 
-    // Material-Statistiken zum DOM hinzufügen
+    // Add material statistics to DOM
     const materialsList = document.getElementById("materialsList");
     materialsList.innerHTML = '';
     Object.entries(materials)
-        .sort(([,a], [,b]) => b - a) // Sortiere nach Anzahl absteigend
+        .sort(([,a], [,b]) => b - a) // Sort by count in descending order.
         .forEach(([material, count]) => {
             const li = document.createElement("li");
             li.textContent = `${material}: ${count} ${count === 1 ? 'Spool' : 'Spools'}`;
@@ -140,7 +141,7 @@ function updateFilamentDropdown(selectedSmId = null) {
     const selectedColor = document.getElementById("selected-color");
 
     dropdownContentInner.innerHTML = '';
-    selectedText.textContent = "Bitte wählen...";
+    selectedText.textContent = "Please choose ...";
     selectedColor.style.backgroundColor = '#FFFFFF';
 
     if (vendorId) {
@@ -190,7 +191,7 @@ function selectFilament(spool) {
     }));
 }
 
-// Initialisierung und Event-Handler
+// Initialization and event handler
 async function initSpoolman() {
     try {
         const response = await fetch('/api/url');
@@ -200,7 +201,7 @@ async function initSpoolman() {
         
         const data = await response.json();
         if (!data.spoolman_url) {
-            throw new Error('spoolman_url nicht in der Antwort gefunden');
+            throw new Error('spoolman_url not found in the response');
         }
         
         spoolmanUrl = data.spoolman_url;
@@ -212,7 +213,7 @@ async function initSpoolman() {
             detail: spoolsData 
         }));
     } catch (error) {
-        console.error('Fehler beim Initialisieren von Spoolman:', error);
+        console.error('Error in initializing Spoolman:', error);
         document.dispatchEvent(new CustomEvent('spoolmanError', { 
             detail: { message: error.message } 
         }));
@@ -222,7 +223,7 @@ async function initSpoolman() {
 async function fetchSpoolData() {
     try {
         if (!spoolmanUrl) {
-            throw new Error('Spoolman URL ist nicht initialisiert');
+            throw new Error('Spoolman URL is not initialized');
         }
         
         const response = await fetch(`${spoolmanUrl}/api/v1/spool`);
@@ -233,13 +234,13 @@ async function fetchSpoolData() {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Fehler beim Abrufen der Spulen-Daten:', error);
+        console.error('Error when calling up the spool data:', error);
         return [];
     }
 }
 
 /*
-// Exportiere Funktionen
+// Export functions
 window.getSpoolData = () => spoolsData;
 window.reloadSpoolData = initSpoolman;
 window.populateVendorDropdown = populateVendorDropdown;
@@ -295,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Exportiere Funktionen
+// Export functions
 window.getSpoolData = () => spoolsData;
 window.setSpoolData = (data) => { spoolsData = data; };
 window.reloadSpoolData = initSpoolman;
@@ -306,7 +307,7 @@ window.toggleFilamentDropdown = () => {
     content.classList.toggle("show");
 };
 
-// Event Listener für Click außerhalb Dropdown
+// Event Listener for Click outside dropdown
 window.onclick = function(event) {
     if (!event.target.closest('.custom-dropdown')) {
         const dropdowns = document.getElementsByClassName("dropdown-content");

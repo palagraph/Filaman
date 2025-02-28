@@ -1,4 +1,5 @@
-// WebSocket Variablen
+// Websocket variables
+
 let socket;
 let isConnected = false;
 const RECONNECT_INTERVAL = 5000;
@@ -8,7 +9,8 @@ let lastHeartbeatResponse = Date.now();
 const HEARTBEAT_TIMEOUT = 20000;
 let reconnectTimer = null;
 
-// WebSocket Funktionen
+// Web socket functions
+
 function startHeartbeat() {
     if (heartbeatTimer) clearInterval(heartbeatTimer);
     
@@ -31,7 +33,7 @@ function startHeartbeat() {
         }
         
         try {
-            // Sende Heartbeat
+            // Send Heartbeat
             socket.send(JSON.stringify({ type: 'heartbeat' }));
         } catch (error) {
             isConnected = false;
@@ -51,7 +53,7 @@ function initWebSocket() {
         reconnectTimer = null;
     }
 
-    // Wenn eine existierende Verbindung besteht, diese erst schließen
+    // If there is an existing connection, only close it
     if (socket) {
         socket.close();
         socket = null;
@@ -63,7 +65,7 @@ function initWebSocket() {
         socket.onopen = function() {
             isConnected = true;
             updateConnectionStatus();
-            startHeartbeat(); // Starte Heartbeat nach erfolgreicher Verbindung
+            startHeartbeat(); // Start Heartbeat after a successful connection
         };
         
         socket.onclose = function() {
@@ -71,7 +73,7 @@ function initWebSocket() {
             updateConnectionStatus();
             if (heartbeatTimer) clearInterval(heartbeatTimer);
             
-            // Nur neue Verbindung versuchen, wenn kein Timer läuft
+            // Only try new connections if no timer runs
             if (!reconnectTimer) {
                 reconnectTimer = setTimeout(() => {
                     initWebSocket();
@@ -84,7 +86,7 @@ function initWebSocket() {
             updateConnectionStatus();
             if (heartbeatTimer) clearInterval(heartbeatTimer);
             
-            // Bei Fehler Verbindung schließen und neu aufbauen
+            // Close and rebuild if you have any error
             if (socket) {
                 socket.close();
                 socket = null;
@@ -92,7 +94,7 @@ function initWebSocket() {
         };
         
         socket.onmessage = function(event) {
-            lastHeartbeatResponse = Date.now(); // Aktualisiere Zeitstempel bei jeder Server-Antwort
+            lastHeartbeatResponse = Date.now(); // Update time stamps for every server response
             
             const data = JSON.parse(event.data);
             if (data.type === 'amsData') {
@@ -104,8 +106,8 @@ function initWebSocket() {
             } else if (data.type === 'writeNfcTag') {
                 handleWriteNfcTagResponse(data.success);
             } else if (data.type === 'heartbeat') {
-                // Optional: Spezifische Behandlung von Heartbeat-Antworten
-                // Update status dots
+                // Optional: specific treatment of Heartbeat answers
+                // Update Status Dots
                 const bambuDot = document.getElementById('bambuDot');
                 const spoolmanDot = document.getElementById('spoolmanDot');
                 const ramStatus = document.getElementById('ramStatus');
@@ -162,7 +164,7 @@ function initWebSocket() {
         isConnected = false;
         updateConnectionStatus();
         
-        // Nur neue Verbindung versuchen, wenn kein Timer läuft
+        // Only try new connections if no timer runs
         if (!reconnectTimer) {
             reconnectTimer = setTimeout(() => {
                 initWebSocket();
@@ -175,13 +177,13 @@ function updateConnectionStatus() {
     const statusElement = document.querySelector('.connection-status');
     if (!isConnected) {
         statusElement.classList.remove('hidden');
-        // Verzögerung hinzufügen, damit die CSS-Transition wirken kann
+        // Add delay so that the CSS transition can work
         setTimeout(() => {
             statusElement.classList.add('visible');
         }, 10);
     } else {
         statusElement.classList.remove('visible');
-        // Warte auf das Ende der Fade-out Animation bevor wir hidden setzen
+        // Wait for the end of the fade-out animation before we set hidden
         setTimeout(() => {
             statusElement.classList.add('hidden');
         }, 300);
@@ -192,14 +194,14 @@ function updateConnectionStatus() {
 document.addEventListener("DOMContentLoaded", function() {
     initWebSocket();
     
-    // Event Listener für Checkbox
+    // Event lister for checkbox
     document.getElementById("onlyWithoutSmId").addEventListener("change", function() {
         const spoolsData = window.getSpoolData();
         window.populateVendorDropdown(spoolsData);
     });
 });
 
-// Event Listener für Spoolman Events
+// Event Listener for Spoolman Events
 document.addEventListener('spoolDataLoaded', function(event) {
     window.populateVendorDropdown(event.detail);
 });
@@ -215,17 +217,17 @@ document.addEventListener('filamentSelected', function(event) {
     updateSpoolButtons(selectedText !== "Please choose...");
 });
 
-// Hilfsfunktion für kontrastreiche Textfarbe
+// Auxiliary function for high -contrast text color
 function getContrastColor(hexcolor) {
-    // Konvertiere Hex zu RGB
+    // Convert hex to rgb
     const r = parseInt(hexcolor.substr(0,2),16);
     const g = parseInt(hexcolor.substr(2,2),16);
     const b = parseInt(hexcolor.substr(4,2),16);
     
-    // Berechne Helligkeit (YIQ Formel)
+    // Calculate brightness (YIQ Formula)
     const yiq = ((r*299)+(g*587)+(b*114))/1000;
     
-    // Return schwarz oder weiß basierend auf Helligkeit
+    // Return black or white based on brightness
     return (yiq >= 128) ? '#000000' : '#FFFFFF';
 }
 
@@ -241,7 +243,7 @@ function updateNfcInfo() {
         return;
     }
 
-    // Finde die ausgewählte Spule in den Daten
+    // Find the selected spool in the data
     const selectedSpool = spoolsData.find(spool => 
         `${spool.id} | ${spool.filament.name} (${spool.filament.material})` === selectedText
     );
@@ -258,11 +260,11 @@ function displayAmsData(amsData) {
     amsDataContainer.innerHTML = ''; 
 
     amsData.forEach((ams) => {
-        // Bestimme den Anzeigenamen für das AMS
+        // Determine the display name for the AMS.
         const amsDisplayName = ams.ams_id === 255 ? 'External Spool' : `AMS ${ams.ams_id}`;
         
         const trayHTML = ams.tray.map(tray => {
-            // Prüfe ob überhaupt Daten vorhanden sind
+            // Check whether data is available at all
             const relevantFields = ['tray_type', 'tray_sub_brands', 'tray_info_idx', 'setting_id', 'cali_idx'];
             const hasAnyContent = relevantFields.some(field => 
                 tray[field] !== null && 
@@ -271,10 +273,10 @@ function displayAmsData(amsData) {
                 tray[field] !== 'null'
             );
 
-            // Bestimme den Anzeigenamen für das Tray
+            // Determine the display name for the tray.
             const trayDisplayName = (ams.ams_id === 255) ? 'External' : `Tray ${tray.id}`;
 
-            // Nur für nicht-leere Trays den Button-HTML erstellen
+            // Create the HTML button only for non-empty trays
             const buttonHtml = `
                 <button class="spool-button" onclick="handleSpoolIn(${ams.ams_id}, ${tray.id})" 
                         style="position: absolute; top: -30px; left: -15px; 
@@ -283,7 +285,7 @@ function displayAmsData(amsData) {
                     <img src="spool_in.png" alt="Spool In" style="width: 48px; height: 48px;">
                 </button>`;
             
-                        // Nur für nicht-leere Trays den Button-HTML erstellen
+                        // Create the HTML button HTML only for non-empty trays
             const outButtonHtml = `
                 <button class="spool-button" onclick="handleSpoolOut()" 
                         style="position: absolute; top: -35px; right: -15px; 
@@ -312,7 +314,7 @@ function displayAmsData(amsData) {
                     <hr>`;
             }
 
-            // Generiere den Type mit Color-Box zusammen
+            // Generate the type with a color box together
             const typeWithColor = tray.tray_type ? 
                 `<p>Typ: ${tray.tray_type} ${tray.tray_color ? `<span style="
                     background-color: #${tray.tray_color}; 
@@ -324,7 +326,7 @@ function displayAmsData(amsData) {
                     border-radius: 3px;
                     margin-left: 5px;"></span>` : ''}</p>` : '';
 
-            // Array mit restlichen Tray-Eigenschaften
+            // Array with remaining tray properties
             const trayProperties = [
                 { key: 'tray_sub_brands', label: 'Sub Brands' },
                 { key: 'tray_info_idx', label: 'Filament IDX' },
@@ -332,7 +334,7 @@ function displayAmsData(amsData) {
                 { key: 'cali_idx', label: 'Calibration IDX' }
             ];
 
-            // Nur gültige Felder anzeigen
+            // View only valid fields
             const trayDetails = trayProperties
                 .filter(prop => 
                     tray[prop.key] !== null && 
@@ -341,7 +343,7 @@ function displayAmsData(amsData) {
                     tray[prop.key] !== 'null'
                 )
                 .map(prop => {
-                    // Spezielle Behandlung für setting_id
+                    // Special treatment for setting_id
                     if (prop.key === 'cali_idx' && tray[prop.key] === '-1') {
                         return `<p>${prop.label}: not calibrated</p>`;
                     }
@@ -349,7 +351,7 @@ function displayAmsData(amsData) {
                 })
                 .join('');
 
-            // Temperaturen nur anzeigen, wenn beide nicht 0 sind
+            // Display temperatures only if both are not 0.
             const tempHTML = (tray.nozzle_temp_min > 0 && tray.nozzle_temp_max > 0) 
                 ? `<p>Nozzle Temp: ${tray.nozzle_temp_min}°C - ${tray.nozzle_temp_max}°C</p>`
                 : '';
@@ -381,7 +383,7 @@ function displayAmsData(amsData) {
     });
 }
 
-// Neue Funktion zum Anzeigen/Ausblenden der Spool-Buttons
+// New function for displaying/hiding the spool buttons
 function updateSpoolButtons(show) {
     const spoolButtons = document.querySelectorAll('.spool-button');
     spoolButtons.forEach(button => {
@@ -390,10 +392,10 @@ function updateSpoolButtons(show) {
 }
 
 function handleSpoolmanSettings(tray_info_idx, setting_id, cali_idx, nozzle_temp_min, nozzle_temp_max) {
-    // Hole das ausgewählte Filament
+    // Get the selected filament
     const selectedText = document.getElementById("selected-filament").textContent;
 
-    // Finde die ausgewählte Spule in den Daten
+    // Find the selected spool in the data
     const selectedSpool = spoolsData.find(spool => 
         `${spool.id} | ${spool.filament.name} (${spool.filament.material})` === selectedText
     );
@@ -438,12 +440,12 @@ function handleSpoolOut() {
         socket.send(JSON.stringify(payload));
         showNotification(`External Spool removed. Pls wait`, true);
     } catch (error) {
-        console.error("Fehler beim Senden der WebSocket Nachricht:", error);
+        console.error("Error when sending the website message:", error);
         showNotification("Error while sending!", false);
     }
 }
 
-// Neue Funktion zum Behandeln des Spool-In-Klicks
+// New function to treat the spool-in-click
 function handleSpoolIn(amsId, trayId) {
     // Prüfe WebSocket Verbindung zuerst
     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -452,14 +454,14 @@ function handleSpoolIn(amsId, trayId) {
         return;
     }
 
-    // Hole das ausgewählte Filament
+    // Get the selected filament
     const selectedText = document.getElementById("selected-filament").textContent;
     if (selectedText === "Please choose...") {
         showNotification("Choose Filament first", false);
         return;
     }
 
-    // Finde die ausgewählte Spule in den Daten
+    // Find the selected spool in the data
     const selectedSpool = spoolsData.find(spool => 
         `${spool.id} | ${spool.filament.name} (${spool.filament.material})` === selectedText
     );
@@ -469,7 +471,7 @@ function handleSpoolIn(amsId, trayId) {
         return;
     }
 
-    // Temperaturwerte extrahieren
+    // Extract temperature values
     let minTemp = "175";
     let maxTemp = "275";
 
@@ -479,7 +481,7 @@ function handleSpoolIn(amsId, trayId) {
         maxTemp = selectedSpool.filament.nozzle_temperature[1];
     }
 
-    // Erstelle Payload
+    // Create payload.
     const payload = {
         type: 'setBambuSpool',
         payload: {
@@ -491,16 +493,16 @@ function handleSpoolIn(amsId, trayId) {
             type: selectedSpool.filament.material,
             brand: selectedSpool.filament.vendor.name,
             tray_info_idx: selectedSpool.filament.extra.bambu_idx.replace(/['"]+/g, '').trim(),
-            cali_idx: "-1"  // Default-Wert setzen
+            cali_idx: "-1"  // Set default value
         }
     };
 
-    // Prüfe, ob der Key cali_idx vorhanden ist und setze ihn
+    // Check whether the key Cali_idx is present and set it
     if (selectedSpool.filament.extra.bambu_cali_id) {
         payload.payload.cali_idx = selectedSpool.filament.extra.bambu_cali_id.replace(/['"]+/g, '').trim();
     }
 
-    // Prüfe, ob der Key bambu_setting_id vorhanden ist
+    // Check whether the key bambu_setting_id is present
     if (selectedSpool.filament.extra.bambu_setting_id) {
         payload.payload.bambu_setting_id = selectedSpool.filament.extra.bambu_setting_id.replace(/['"]+/g, '').trim();
     }
@@ -511,7 +513,7 @@ function handleSpoolIn(amsId, trayId) {
         socket.send(JSON.stringify(payload));
         showNotification(`Spool set in AMS ${amsId} Tray ${trayId}. Pls wait`, true);
     } catch (error) {
-        console.error("Fehler beim Senden der WebSocket Nachricht:", error);
+        console.error("Error when sending the website message:", error);
         showNotification("Error while sending", false);
     }
 }
@@ -520,34 +522,34 @@ function updateNfcStatusIndicator(data) {
     const indicator = document.getElementById('nfcStatusIndicator');
     
     if (data.found === 0) {
-        // Kein NFC Tag gefunden
+        // No NFC tag found
         indicator.className = 'status-circle';
     } else if (data.found === 1) {
-        // NFC Tag erfolgreich gelesen
+        // NFC tag successfully read
         indicator.className = 'status-circle success';
     } else {
-        // Fehler beim Lesen
+        // Reading errors
         indicator.className = 'status-circle error';
     }
 }
 
 function updateNfcData(data) {
-    // Den Container für den NFC Status finden
+    // Find the container for the NFC status display
     const nfcStatusContainer = document.querySelector('.nfc-status-display');
     
-    // Bestehende Daten-Anzeige entfernen falls vorhanden
+    // Remove existing data display if available
     const existingData = nfcStatusContainer.querySelector('.nfc-data');
     if (existingData) {
         existingData.remove();
     }
 
-    // Neues div für die Datenanzeige erstellen
+    // Create new Div for the data display
     const nfcDataDiv = document.createElement('div');
     nfcDataDiv.className = 'nfc-data';
 
-    // Wenn ein Fehler vorliegt oder keine Daten vorhanden sind
+    // If there is an error or there are no data
     if (data.error || data.info || !data || Object.keys(data).length === 0) {
-        // Zeige Fehlermeldung oder leere Nachricht
+        // Showing error message or empty message
         if (data.error || data.info) {
             if (data.error) {
                 nfcDataDiv.innerHTML = `
@@ -568,7 +570,7 @@ function updateNfcData(data) {
         return;
     }
 
-    // HTML für die Datenanzeige erstellen
+    // Create HTML for the data display
     let html = `
         <div class="nfc-card-data" style="margin-top: 10px;">
             <p><strong>Brand:</strong> ${data.brand || 'N/A'}</p>
@@ -584,20 +586,20 @@ function updateNfcData(data) {
             "></span>` : ''}</p>
     `;
 
-    // Spoolman ID anzeigen
+    // Show Spoolman ID
     html += `<p><strong>Spoolman ID:</strong> ${data.sm_id || 'No Spoolman ID'}</p>`;
 
-    // Nur wenn eine sm_id vorhanden ist, aktualisiere die Dropdowns
+    // Only when there is an SM_ID update the dropdowns
     if (data.sm_id) {
         const matchingSpool = spoolsData.find(spool => spool.id === parseInt(data.sm_id));
         if (matchingSpool) {
-            // Zuerst Hersteller-Dropdown aktualisieren
+            // Update the manufacturer dropdown first
             document.getElementById("vendorSelect").value = matchingSpool.filament.vendor.id;
             
-            // Dann Filament-Dropdown aktualisieren und Spule auswählen
+            // Then update the filament dropdown and select spool
             updateFilamentDropdown();
             setTimeout(() => {
-                // Warte kurz bis das Dropdown aktualisiert wurde
+                // Wait briefly until the dropdown has been updated
                 selectFilament(matchingSpool);
             }, 100);
         }
@@ -607,7 +609,7 @@ function updateNfcData(data) {
     nfcDataDiv.innerHTML = html;
 
     
-    // Neues div zum Container hinzufügen
+    // Add new Div to the container
     nfcStatusContainer.appendChild(nfcDataDiv);
 }
 
@@ -624,11 +626,11 @@ function writeNfcTag() {
     );
 
     if (!selectedSpool) {
-        alert('Ausgewählte Spule konnte nicht gefunden werden.');
+        alert('Selected spool could not be found.');
         return;
     }
 
-    // Temperaturwerte korrekt extrahieren
+    // Extract temperature values ​​correctly
     let minTemp = "175";
     let maxTemp = "275";
     
@@ -638,7 +640,7 @@ function writeNfcTag() {
         maxTemp = String(selectedSpool.filament.nozzle_temperature[1]);
     }
 
-    // Erstelle das NFC-Datenpaket mit korrekten Datentypen
+    // Create the NFC data package with correct data types
     const nfcData = {
         version: "2.0",
         protocol: "openspool",

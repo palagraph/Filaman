@@ -17,12 +17,12 @@ extern String spoolmanUrl;
 extern AsyncWebServer server;
 extern AsyncWebSocket ws;
 
-// Server-Initialisierung und Handler
+// Server initialization and handler
 void initWebServer();
 void handleBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
 void setupWebserver(AsyncWebServer &server);
 
-// WebSocket-Funktionen
+// Web socket functions
 void sendAmsData(AsyncWebSocketClient *client);
 void sendNfcData(AsyncWebSocketClient *client);
 void foundNfcTag(AsyncWebSocketClient *client, uint8_t success);

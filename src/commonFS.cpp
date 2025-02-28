@@ -1,16 +1,16 @@
 #include "commonFS.h"
-#include <SPIFFS.h>
+#include <Spiffs.h>
 
 bool saveJsonValue(const char* filename, const JsonDocument& doc) {
-    File file = SPIFFS.open(filename, "w");
+    File file = SPIFFS.open(filename, "W");
     if (!file) {
-        Serial.print("Fehler beim Öffnen der Datei zum Schreiben: ");
+        Serial.print("Error when opening the file for writing: ");
         Serial.println(filename);
         return false;
     }
 
     if (serializeJson(doc, file) == 0) {
-        Serial.println("Fehler beim Serialisieren von JSON.");
+        Serial.println("Ersal error in JSON.");
         file.close();
         return false;
     }
@@ -20,16 +20,16 @@ bool saveJsonValue(const char* filename, const JsonDocument& doc) {
 }
 
 bool loadJsonValue(const char* filename, JsonDocument& doc) {
-    File file = SPIFFS.open(filename, "r");
+    File file = SPIFFS.open(filename, "R");
     if (!file) {
-        Serial.print("Fehler beim Öffnen der Datei zum Lesen: ");
+        Serial.print("Error when opening the file for reading: ");
         Serial.println(filename);
         return false;
     }
     DeserializationError error = deserializeJson(doc, file);
     file.close();
     if (error) {
-        Serial.print("Fehler beim Deserialisieren von JSON: ");
+        Serial.print("Errors when deserializing JSON: ");
         Serial.println(error.f_str());
         return false;
     }
@@ -37,11 +37,11 @@ bool loadJsonValue(const char* filename, JsonDocument& doc) {
 }
 
 void initializeSPIFFS() {
-    if (!SPIFFS.begin(true, "/spiffs", 10, "spiffs")) {
-        Serial.println("SPIFFS Mount Failed");
+    if (!SPIFFS.begin(true, "/Spiff", 10, "Spiff")) {
+        Serial.println("Spiffs Mount Failed");
         return;
     }
-    Serial.printf("SPIFFS Total: %u bytes\n", SPIFFS.totalBytes());
-    Serial.printf("SPIFFS Used: %u bytes\n", SPIFFS.usedBytes());
-    Serial.printf("SPIFFS Free: %u bytes\n", SPIFFS.totalBytes() - SPIFFS.usedBytes());
+    Serial.printf("Spiffs totally: %u Bytes \n", SPIFFS.totalBytes());
+    Serial.printf("Spiffs used: %u Bytes \n", SPIFFS.usedBytes());
+    Serial.printf("Spiffs Free: %u Bytes \n", SPIFFS.totalBytes() - SPIFFS.usedBytes());
 }

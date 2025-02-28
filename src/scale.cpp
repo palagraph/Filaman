@@ -22,7 +22,8 @@ Preferences preferences;
 const char* NVS_NAMESPACE = "scale";
 const char* NVS_KEY_CALIBRATION = "cal_value";
 
-// ##### Funktionen für Waage #####
+// ##### Functions for scale ######
+
 uint8_t tareScale() {
   Serial.println("Tare scale");
   scale.tare();
@@ -37,7 +38,7 @@ void scale_loop(void * parameter) {
   for(;;) {
     if (scale.is_ready()) 
     {
-      // Waage nochmal Taren, wenn zu lange Abweichung
+      // Re-tare the scale if the deviation lasts too long.
       if (scale_tare_counter >= 5) 
       {
         scale.tare();
@@ -47,12 +48,13 @@ void scale_loop(void * parameter) {
       weight = round(scale.get_units());
     }
     
-    vTaskDelay(pdMS_TO_TICKS(100)); // Verzögerung, um die CPU nicht zu überlasten
+    vTaskDelay(pdMS_TO_TICKS(100)); // Delay so as not to overload the CPU
+
   }
 }
 
 uint8_t start_scale() {
-  Serial.println("Prüfe Calibration Value");
+  Serial.println("Check calibration value");
   long calibrationValue;
 
   // NVS lesen
@@ -86,7 +88,7 @@ uint8_t start_scale() {
   // Display Gewicht
   oledShowWeight(0);
 
-  Serial.println("starte Scale Task");
+  Serial.println("Start scale task");
   BaseType_t result = xTaskCreatePinnedToCore(
     scale_loop, /* Function to implement the task */
     "ScaleLoop", /* Name of the task */
@@ -97,9 +99,9 @@ uint8_t start_scale() {
     scaleTaskCore); /* Core where the task should run */
 
   if (result != pdPASS) {
-      Serial.println("Fehler beim Erstellen des ScaleLoop-Tasks");
+      Serial.println("Error creating the scale loop tasks");
   } else {
-      Serial.println("ScaleLoop-Task erfolgreich erstellt");
+      Serial.println("Scale loop task successfully created");
   }
 
   return (scaleCalibrated == 1) ? 1 : 3;
