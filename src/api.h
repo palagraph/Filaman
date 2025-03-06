@@ -10,9 +10,12 @@
 
 extern bool spoolman_connected;
 extern String spoolmanUrl;
+extern bool octoEnabled;
+extern String octoUrl;
+extern String octoToken;
 
 bool checkSpoolmanInstance(const String& url);
-bool saveSpoolmanUrl(const String& url);
+bool saveSpoolmanUrl(const String& url, bool octoOn, const String& octoWh, const String& octoTk);
 String loadSpoolmanUrl(); // New function for loading the URL
 bool checkSpoolmanExtraFields(); // New function to check the extrafelder
 JsonDocument fetchSingleSpoolInfo(int spoolId); // API function for the website
@@ -22,5 +25,6 @@ uint8_t updateSpoolWeight(String spoolId, uint16_t weight); // New function for 
 bool initSpoolman(); // New function to initialize Spoolman
 bool updateSpoolBambuData(String payload); // New function to update the BAMBU data
 
+bool updateSpoolOcto(int spoolId); // Neue Funktion zum Aktualisieren der Octo-Daten
 
 #endif

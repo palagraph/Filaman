@@ -8,7 +8,8 @@ Das System integriert sich nahtlos mit der [Spoolman](https://github.com/Donkie/
 
 Weitere Bilder finden Sie im [img Ordner](/img/)
 oder auf meiner Website: [FilaMan Website](https://www.filaman.app)  
-Deutsches Erklärvideo: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaOHU)
+Deutsches Erklärvideo: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaOHU)  
+Discord Server: [https://discord.gg/vMAx2gf5](https://discord.gg/vMAx2gf5)
 
 ### Es gibt jetzt auch ein Wiki, dort sind nochmal alle Funktionen beschrieben: [Wiki](https://github.com/ManuelW77/Filaman/wiki)
 
@@ -18,7 +19,7 @@ Deutsches Erklärvideo: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaO
 - **OLED-Display:** Zeigt aktuelles Gewicht, Verbindungsstatus (WiFi, Bambu Lab, Spoolman).
 - **WLAN-Konnektivität:** WiFiManager für einfache Netzwerkkonfiguration.
 - **MQTT-Integration:** Verbindet sich mit Bambu Lab Drucker für AMS-Steuerung.
-- **NFC-Tag NTAG215:** Verwendung von NTAG215 wegen ausreichendem Speicherplatz auf dem Tag
+- **NFC-Tag NTAG213 NTAG215:** Verwendung von NTAG213, besser NTAG215 wegen ausreichendem Speicherplatz auf dem Tag
 
 ### Weboberflächen-Funktionen
 - **Echtzeit-Updates:** WebSocket-Verbindung für Live-Daten-Updates.
@@ -35,6 +36,7 @@ Deutsches Erklärvideo: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaO
   - Filtern und Auswählen von Filamenten.
   - Automatische Aktualisierung der Spulengewichte.
   - Verfolgung von NFC-Tag-Zuweisungen.
+  - Unterstützt das Spoolman Octoprint Plugin
 
 ### Wenn Sie meine Arbeit unterstützen möchten, freue ich mich über einen Kaffee
 <a href="https://www.buymeacoffee.com/manuelw" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 30px !important;width: 108px !important;" ></a>
@@ -61,7 +63,7 @@ Deutsches Erklärvideo: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaO
 [Amazon Link](https://amzn.eu/d/0AuBp2c)
 - **PN532 NFC NXP RFID-Modul V3:** Für NFC-Tag-Operationen.
 [Amazon Link](https://amzn.eu/d/jfIuQXb)
-- **NFC Tags Ntag215:** RFID Tag
+- **NFC Tags NTAG213 NTA215:** RFID Tag
 [Amazon Link](https://amzn.eu/d/9Z6mXc1)
 
 ### Pin-Konfiguration

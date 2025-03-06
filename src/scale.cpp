@@ -92,7 +92,7 @@ uint8_t start_scale() {
   BaseType_t result = xTaskCreatePinnedToCore(
     scale_loop, /* Function to implement the task */
     "ScaleLoop", /* Name of the task */
-    10000,  /* Stack size in words */
+    2048,  /* Stack size in words */
     NULL,  /* Task input parameter */
     scaleTaskPrio,  /* Priority of the task */
     &ScaleTask,  /* Task handle. */
@@ -112,6 +112,7 @@ uint8_t calibrate_scale() {
 
   //vTaskSuspend(RfidReaderTask);
   vTaskDelete(RfidReaderTask);
+  vTaskDelete(ScaleTask);
   pauseBambuMqttTask = true;
   pauseMainTask = 1;
 
@@ -179,8 +180,6 @@ uint8_t calibrate_scale() {
         vTaskDelay(pdMS_TO_TICKS(1));
         esp_task_wdt_reset();
       }
-
-      //ESP.restart();
     }
     else
     {
@@ -213,9 +212,8 @@ uint8_t calibrate_scale() {
   }
 
   oledShowMessage("Scale Ready");
-
   
-  Serial.println("starte Scale Task");
+  Serial.println("restart Scale Task");
   start_scale();
 
   pauseBambuMqttTask = false;

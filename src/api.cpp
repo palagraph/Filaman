@@ -5,37 +5,16 @@
 
 bool spoolman_connected = false;
 String spoolmanUrl = "";
+bool octoEnabled = false;
+String octoUrl = "";
+String octoToken = "";
 
 struct SendToApiParams {
     String httpType;
     String spoolsUrl;
     String updatePayload;
+    String octoToken;
 };
-
-/*
-    // Spoolman Data
-    {
-        "version":"1.0",
-        "protocol":"openspool",
-        "color_hex":"AF7933",
-        "type":"ABS",
-        "min_temp":175,
-        "max_temp":275,
-        "brand":"Overture"
-    }
-
-    // FilaMan Data
-    {
-        "version":"1.0",
-        "protocol":"openspool",
-        "color_hex":"AF7933",
-        "type":"ABS",
-        "min_temp":175,
-        "max_temp":275,
-        "brand":"Overture",
-        "sm_id": 
-    }
-*/
 
 JsonDocument fetchSingleSpoolInfo(int spoolId) {
     HTTPClient http;
@@ -112,14 +91,16 @@ void sendToApi(void *parameter) {
     String httpType = params->httpType;
     String spoolsUrl = params->spoolsUrl;
     String updatePayload = params->updatePayload;
-    
+    String octoToken = params->octoToken;    
 
     HTTPClient http;
     http.begin(spoolsUrl);
     http.addHeader("Content-Type", "application/json");
+    if (octoEnabled && octoToken != "") http.addHeader("X-Api-Key", octoToken);
 
     int httpCode = http.PUT(updatePayload);
     if (httpType == "PATCH") httpCode = http.PATCH(updatePayload);
+    if (httpType == "POST") httpCode = http.POST(updatePayload);
 
     if (httpCode == HTTP_CODE_OK) {
         Serial.println("Spoolman successfully updated");
@@ -221,6 +202,80 @@ uint8_t updateSpoolWeight(String spoolId, uint16_t weight) {
     );
 
     return 1;
+}
+
+bool updateSpoolOcto(int spoolId) {
+    String spoolsUrl = octoUrl + "/plugin/Spoolman/selectSpool";
+    Serial.print("Update Spule in Octoprint mit URL: ");
+    Serial.println(spoolsUrl);
+
+    JsonDocument updateDoc;
+    updateDoc["spool_id"] = spoolId;
+    updateDoc["tool"] = "tool0";
+
+    String updatePayload;
+    serializeJson(updateDoc, updatePayload);
+    Serial.print("Update Payload: ");
+    Serial.println(updatePayload);
+
+    SendToApiParams* params = new SendToApiParams();
+    if (params == nullptr) {
+        Serial.println("Fehler: Kann Speicher für Task-Parameter nicht allokieren.");
+        return false;
+    }
+    params->httpType = "POST";
+    params->spoolsUrl = spoolsUrl;
+    params->updatePayload = updatePayload;
+    params->octoToken = octoToken;
+
+    // Create the task
+    BaseType_t result = xTaskCreate(
+        sendToApi,                // Task function
+        "SendToApiTask",          // Task name
+        4096,                     // Stack size in bytes
+        (void*)params,            // Parameter
+        0,                        // Priority
+        NULL                      // Task handle (not required)
+    );
+
+    return true;
+}
+
+bool updateSpoolOcto(int spoolId) {
+    String spoolsUrl = octoUrl + "/plugin/Spoolman/selectSpool";
+    Serial.print("Update Spule in Octoprint mit URL: ");
+    Serial.println(spoolsUrl);
+
+    JsonDocument updateDoc;
+    updateDoc["spool_id"] = spoolId;
+    updateDoc["tool"] = "tool0";
+
+    String updatePayload;
+    serializeJson(updateDoc, updatePayload);
+    Serial.print("Update Payload: ");
+    Serial.println(updatePayload);
+
+    SendToApiParams* params = new SendToApiParams();
+    if (params == nullptr) {
+        Serial.println("Fehler: Kann Speicher für Task-Parameter nicht allokieren.");
+        return false;
+    }
+    params->httpType = "POST";
+    params->spoolsUrl = spoolsUrl;
+    params->updatePayload = updatePayload;
+    params->octoToken = octoToken;
+
+    // Erstelle die Task
+    BaseType_t result = xTaskCreate(
+        sendToApi,                // Task-Funktion
+        "SendToApiTask",          // Task-Name
+        4096,                     // Stackgröße in Bytes
+        (void*)params,            // Parameter
+        0,                        // Priorität
+        NULL                      // Task-Handle (nicht benötigt)
+    );
+
+    return true;
 }
 
 bool updateSpoolBambuData(String payload) {
@@ -411,11 +466,12 @@ bool checkSpoolmanExtraFields() {
                 }
             }
         }
-        http.end();  
     }
     
     Serial.println("-------- End review fields --------");
     Serial.println();
+
+    http.end();
 
     return true;
 }
@@ -460,17 +516,24 @@ bool checkSpoolmanInstance(const String& url) {
     return false;
 }
 
-bool saveSpoolmanUrl(const String& url) {
+bool saveSpoolmanUrl(const String& url, bool octoOn, const String& octoWh, const String& octoTk) {
     if (!checkSpoolmanInstance(url)) return false;
 
     JsonDocument doc;
     doc["url"] = url;
-    Serial.print("Save URL in file: ");
-    Serial.println(url);
+    doc["octoEnabled"] = octoOn;
+    doc["octoUrl"] = octoWh;
+    doc["octoToken"] = octoTk;
+    Serial.print("Save Spoolman Data in file: ");
+    Serial.println(doc.as<String>());
     if (!saveJsonValue("/spoolman_url.json", doc)) {
         Serial.println("Error when saving the Spoolman URL.");
+        return false;
     }
     spoolmanUrl = url;
+    octoEnabled = octoOn;
+    octoUrl = octoWh;
+    octoToken = octoTk;
 
     return true;
 }
@@ -478,6 +541,13 @@ bool saveSpoolmanUrl(const String& url) {
 String loadSpoolmanUrl() {
     JsonDocument doc;
     if (loadJsonValue("/spoolman_url.json", doc) && doc["url"].is<String>()) {
+        octoEnabled = (doc["octoEnabled"].is<bool>()) ? doc["octoEnabled"].as<bool>() : false;
+        if (octoEnabled && doc["octoToken"].is<String>() && doc["octoUrl"].is<String>())
+        {
+            octoUrl = doc["octoUrl"].as<String>();
+            octoToken = doc["octoToken"].as<String>();
+        }
+
         return doc["url"].as<String>();
     }
     Serial.println("No valid Spoolman URL found.");

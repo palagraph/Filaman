@@ -14,11 +14,39 @@ static size_t updateTotalSize = 0;
 static size_t updateWritten = 0;
 static bool isSpiffsUpdate = false;
 
+/**
+ * Compares two version strings and determines if version1 is less than version2
+ * 
+ * @param version1 First version string (format: x.y.z)
+ * @param version2 Second version string (format: x.y.z)
+ * @return true if version1 is less than version2
+ */
+bool isVersionLessThan(const String& version1, const String& version2) {
+    int major1 = 0, minor1 = 0, patch1 = 0;
+    int major2 = 0, minor2 = 0, patch2 = 0;
+    
+    // Parse version1
+    sscanf(version1.c_str(), "%d.%d.%d", &major1, &minor1, &patch1);
+    
+    // Parse version2
+    sscanf(version2.c_str(), "%d.%d.%d", &major2, &minor2, &patch2);
+    
+    // Compare major version
+    if (major1 < major2) return true;
+    if (major1 > major2) return false;
+    
+    // Major versions equal, compare minor
+    if (minor1 < minor2) return true;
+    if (minor1 > minor2) return false;
+    
+    // Minor versions equal, compare patch
+    return patch1 < patch2;
+}
 
 void backupJsonConfigs() {
     // Bambu Credentials backup
-    if (SPIFFS.exists("/bambu_credentials.json")) {
-        File file = SPIFFS.open("/bambu_credentials.json", "r");
+    if (LittleFS.exists("/bambu_credentials.json")) {
+        File file = LittleFS.open("/bambu_credentials.json", "r");
         if (file) {
             bambuCredentialsBackup = file.readString();
             file.close();
@@ -27,8 +55,8 @@ void backupJsonConfigs() {
     }
 
     // Spoolman URL backup
-    if (SPIFFS.exists("/spoolman_url.json")) {
-        File file = SPIFFS.open("/spoolman_url.json", "r");
+    if (LittleFS.exists("/spoolman_url.json")) {
+        File file = LittleFS.open("/spoolman_url.json", "r");
         if (file) {
             spoolmanUrlBackup = file.readString();
             file.close();
@@ -40,7 +68,7 @@ void backupJsonConfigs() {
 void restoreJsonConfigs() {
     // Restore Bambu credentials
     if (bambuCredentialsBackup.length() > 0) {
-        File file = SPIFFS.open("/bambu_credentials.json", "w");
+        File file = LittleFS.open("/bambu_credentials.json", "w");
         if (file) {
             file.print(bambuCredentialsBackup);
             file.close();
@@ -51,7 +79,7 @@ void restoreJsonConfigs() {
 
     // Restore Spoolman URL
     if (spoolmanUrlBackup.length() > 0) {
-        File file = SPIFFS.open("/spoolman_url.json", "w");
+        File file = LittleFS.open("/spoolman_url.json", "w");
         if (file) {
             file.print(spoolmanUrlBackup);
             file.close();
@@ -111,6 +139,16 @@ void handleUpdate(AsyncWebServer &server) {
     updateHandler->setUri("/update");
     updateHandler->setMethod(HTTP_POST);
     
+    // Check if current version is less than defined TOOLVERSION before proceeding with update
+    if (isVersionLessThan(VERSION, TOOLDVERSION)) {
+        updateHandler->onRequest([](AsyncWebServerRequest *request) {
+            request->send(400, "application/json", 
+                "{\"success\":false,\"message\":\"Your current version is too old. Please perform a full upgrade.\"}");
+        });
+        server.addHandler(updateHandler);
+        return;
+    }
+
     updateHandler->onUpload([](AsyncWebServerRequest *request, String filename,
                              size_t index, uint8_t *data, size_t len, bool final) {
         if (!index) {

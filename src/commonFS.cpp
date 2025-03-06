@@ -1,8 +1,8 @@
 #include "commonFS.h"
-#include <Spiffs.h>
+#include <LittleFS.h>
 
 bool saveJsonValue(const char* filename, const JsonDocument& doc) {
-    File file = SPIFFS.open(filename, "W");
+    File file = LittleFS.open(filename, "w");
     if (!file) {
         Serial.print("Error when opening the file for writing: ");
         Serial.println(filename);
@@ -20,7 +20,7 @@ bool saveJsonValue(const char* filename, const JsonDocument& doc) {
 }
 
 bool loadJsonValue(const char* filename, JsonDocument& doc) {
-    File file = SPIFFS.open(filename, "R");
+    File file = LittleFS.open(filename, "r");
     if (!file) {
         Serial.print("Error when opening the file for reading: ");
         Serial.println(filename);
@@ -36,12 +36,12 @@ bool loadJsonValue(const char* filename, JsonDocument& doc) {
     return true;
 }
 
-void initializeSPIFFS() {
-    if (!SPIFFS.begin(true, "/Spiff", 10, "Spiff")) {
-        Serial.println("Spiffs Mount Failed");
+void initializeFileSystem() {
+    if (!LittleFS.begin(true)) {
+        Serial.println("LittleFS Mount Failed");
         return;
     }
-    Serial.printf("Spiffs totally: %u Bytes \n", SPIFFS.totalBytes());
-    Serial.printf("Spiffs used: %u Bytes \n", SPIFFS.usedBytes());
-    Serial.printf("Spiffs Free: %u Bytes \n", SPIFFS.totalBytes() - SPIFFS.usedBytes());
+    Serial.printf("LittleFS Total: %u bytes\n", LittleFS.totalBytes());
+    Serial.printf("LittleFS Used: %u bytes\n", LittleFS.usedBytes());
+    Serial.printf("LittleFS Free: %u bytes\n", LittleFS.totalBytes() - LittleFS.usedBytes());
 }

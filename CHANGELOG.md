@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.4.0] - 2025-03-01
+### Added
+- add support for Spoolman Octoprint Plugin in README files
+- add OctoPrint integration with configurable fields and update functionality
+- add version comparison function and check for outdated versions before updates
+- remove unused version and protocol fields from JSON output; add error message for insufficient memory
+
+### Changed
+- update NFC tag references to include NTAG213 and clarify storage capacity
+- bump version to 1.4.0
+- remove unused version and protocol fields from NFC data packet
+- sort vendors alphabetically in the dropdown list
+- Merge pull request #10 from janecker/nfc-improvements
+- Improves NFC Tag handling
+
+
+## [1.3.99] - 2025-02-28
+### Changed
+- update platformio.ini for version v1.3.99
+- update workflows to build firmware with LittleFS instead of SPIFFS
+
+
+## [1.3.98] - 2025-02-28
+### Changed
+- update platformio.ini for version v1.3.98
+- migrate from SPIFFS to LittleFS for file handling
+- remove unused VSCode settings file
+- remove commented-out spoolman and filaman data from api.cpp
+
+
+## [1.3.97] - 2025-02-28
+### Added
+- füge Bestätigungsmeldung für Spool-Einstellung hinzu
+- verbessere WLAN-Konfiguration und füge mDNS-Unterstützung hinzu
+- aktualisiere OLED-Anzeige mit Versionsnummer und verbessere Textausrichtung
+- füge regelmäßige WLAN-Verbindungsüberprüfung hinzu
+- aktualisiere Schaltplan-Bild
+- zeige Versionsnummer im OLED-Display an
+
+### Changed
+- update platformio.ini for version v1.3.97
+- entferne text-shadow von deaktivierten Schaltflächen
+- füge Link zum Wiki für detaillierte Informationen über die Nutzung hinzu
+
+### Fixed
+- Speichernutzung optimiert
+- behebe doppelte http.end() Aufrufe in checkSpoolmanExtraFields
+- optimiere Verzögerungen und Stackgrößen in NFC-Task-Funktionen
+- entferne ungenutzte Bibliotheken und Debug-Ausgaben aus main.cpp
+
+
 ## [1.3.96] - 2025-02-25
 ### Added
 - füge Unterstützung für Spoolman-Einstellungen hinzu und aktualisiere die Benutzeroberfläche

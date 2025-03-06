@@ -6,12 +6,14 @@ FilaMan is a filament management system for 3D printing. It uses ESP32 hardware 
 Users can manage filament spools, monitor the status of the Automatic Material System (AMS) and make settings via a web interface. 
 The system integrates seamlessly with [Bambulab](https://bambulab.com/en-us) 3D printers and [Spoolman](https://github.com/Donkie/Spoolman) filament management as well as the [Openspool](https://github.com/spuder/OpenSpool) NFC-TAG format.
 
+
 ![Scale](./img/scale_trans.png)
 
 
 More Images can be found in the [img Folder](/img/)  
-or my website:[FilaMan Website](https://www.filaman.app)  
-german explanatory video: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaOHU)
+or my website: [FilaMan Website](https://www.filaman.app)  
+german explanatory video: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62zaOHU)  
+Discord Server: [https://discord.gg/vMAx2gf5](https://discord.gg/vMAx2gf5)
 
 ### Now more detailed informations about the usage: [Wiki](https://github.com/ManuelW77/Filaman/wiki)
 
@@ -21,7 +23,7 @@ german explanatory video: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62z
 - **OLED Display:** Shows current weight, connection status (WiFi, Bambu Lab, Spoolman).
 - **WiFi Connectivity:** WiFiManager for easy network configuration.
 - **MQTT Integration:** Connects to Bambu Lab printer for AMS control.
-- **NFC-Tag NTAG215:** Use NTAG215 because of enaught space on the Tag
+- **NFC-Tag NTAG213 NTAG215:** Use NTAG213, better NTAG215 because of enaught space on the Tag
 
 ### Web Interface Features
 - **Real-time Updates:** WebSocket connection for live data updates.
@@ -38,6 +40,7 @@ german explanatory video: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62z
   - Filter and select filaments.
   - Update spool weights automatically.
   - Track NFC tag assignments.
+  - Supports Spoolman Octoprint Plugin
 
 ### If you want to support my work, i would be happy to get a coffe
 <a href="https://www.buymeacoffee.com/manuelw" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 30px !important;width: 108px !important;" ></a>
@@ -64,7 +67,7 @@ german explanatory video: [Youtube](https://youtu.be/uNDe2wh9SS8?si=b-jYx4I1w62z
 [Amazon Link](https://amzn.eu/d/0AuBp2c)
 - **PN532 NFC NXP RFID-Modul V3:** For NFC tag operations.
 [Amazon Link](https://amzn.eu/d/jfIuQXb)
-- **NFC Tags Ntag215:** RFID Tag
+- **NFC Tags NTAG213 NTAG215:** RFID Tag
 [Amazon Link](https://amzn.eu/d/9Z6mXc1)
 
 

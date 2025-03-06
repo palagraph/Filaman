@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include <DNSServer.h>
-#include <ESPmDNS.h>
 #include <Wire.h>
 #include <WiFi.h>
 
@@ -29,17 +27,14 @@ void setup() {
   Serial.printf("%08X\n", (uint32_t)chipid); //Print low 4bytes.
 
 
-  // Initialize Spiffs
-
-  initializeSPIFFS();
+  // Initialize SPIFFS
+  initializeFileSystem();
 
   // Start display
 
   setupDisplay();
-  oledShowMessage("FilaMan v"+String(VERSION));
 
-  // Wi fi manager
-
+  // Wi fi manager 
   initWiFi();
 
   // Web server
@@ -53,22 +48,9 @@ void setup() {
   initSpoolman();
 
   // Bambu MQTT
-  // bambu.cpp
-
   setupMqtt();
 
-  // mDNS
-
-  Serial.println("Start MDNS");
-  if (!MDNS.begin("filaman")) {   // Set the Hostname to "Esp32.local"
-
-    Serial.println("Error setting up MDNS responder!");
-    while(1) {
-      delay(1000);
-    }
-  }
-  Serial.println("mDNS responder started");
-  
+  // NFC Reader
   startNfc();
 
   uint8_t scaleCalibrated = start_scale();
@@ -98,11 +80,25 @@ void setup() {
 
   esp_task_wdt_add(NULL);
 
-  // Optional: Add other tasks to the watchdog, if necessary
-  // ESP_ASK_WDT_ADD (Task_handle);
-
+  // Optional: Andere Tasks zum Watchdog hinzufügen, falls nötig
+  // esp_task_wdt_add(task_handle);  
 }
 
+
+/**
+ * Safe interval check that handles millis() overflow
+ * @param currentTime Current millis() value
+ * @param lastTime Last recorded time
+ * @param interval Desired interval in milliseconds
+ * @return True if interval has elapsed
+ */
+bool intervalElapsed(unsigned long currentTime, unsigned long &lastTime, unsigned long interval) {
+  if (currentTime - lastTime >= interval || currentTime < lastTime) {
+    lastTime = currentTime;
+    return true;
+  }
+  return false;
+}
 
 unsigned long lastWeightReadTime = 0;
 const unsigned long weightReadInterval = 1000; // 1 second
@@ -113,37 +109,32 @@ const unsigned long autoSetBambuAmsInterval = 1000; // 1 second
 
 uint8_t autoAmsCounter = 0;
 
-unsigned long lastAmsSendTime = 0;
-const unsigned long amsSendInterval = 60000; // 1 minute
-
-
 uint8_t weightSend = 0;
 int16_t lastWeight = 0;
-uint8_t wifiErrorCounter = 0;
+
+unsigned long lastWifiCheckTime = 0;
+const unsigned long wifiCheckInterval = 60000; // Überprüfe alle 60 Sekunden (60000 ms)
 
 // ##### Program Start ######
 
 void loop() {
   unsigned long currentMillis = millis();
 
-  // Send AMS Data min every Minute
-
-  if (currentMillis - lastAmsSendTime >= amsSendInterval) 
-  {
-    lastAmsSendTime = currentMillis;
-    //Send ams data (nullptr);
-
+  // Überprüfe regelmäßig die WLAN-Verbindung
+  if (intervalElapsed(currentMillis, lastWifiCheckTime, wifiCheckInterval)) {
+    checkWiFiConnection();
   }
 
   // When Bambu Auto Set Spool is active
 
-  if (autoSendToBambu && autoSetToBambuSpoolId > 0 && currentMillis - lastAutoSetBambuAmsTime >= autoSetBambuAmsInterval) 
-  {
-    if (hasReadRfidTag == 0)
+  if (autoSendToBambu && autoSetToBambuSpoolId > 0) {
+    if (intervalElapsed(currentMillis, lastAutoSetBambuAmsTime, autoSetBambuAmsInterval)) 
     {
-      lastAutoSetBambuAmsTime = currentMillis;
-      oledShowMessage("Auto Set         " + String(autoSetBambuAmsCounter - autoAmsCounter) + "s");
-      autoAmsCounter++;
+      if (hasReadRfidTag == 0)
+      {
+        lastAutoSetBambuAmsTime = currentMillis;
+        oledShowMessage("Auto Set         " + String(autoSetBambuAmsCounter - autoAmsCounter) + "s");
+        autoAmsCounter++;
 
       if (autoAmsCounter >= autoSetBambuAmsCounter) 
       {
@@ -228,6 +219,11 @@ void loop() {
       vTaskDelay(2000 / portTICK_PERIOD_MS);
       weightSend = 1;
       autoSetToBambuSpoolId = spoolId.toInt();
+
+      if (octoEnabled) 
+      {
+        updateSpoolOcto(autoSetToBambuSpoolId);
+      }
     }
     else
     {

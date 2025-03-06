@@ -642,8 +642,6 @@ function writeNfcTag() {
 
     // Create the NFC data package with correct data types
     const nfcData = {
-        version: "2.0",
-        protocol: "openspool",
         color_hex: selectedSpool.filament.color_hex || "FFFFFF",
         type: selectedSpool.filament.material,
         min_temp: minTemp,
