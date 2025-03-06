@@ -234,4 +234,5 @@ void loop() {
 
   yield();
   esp_task_wdt_reset();
+  }
 }

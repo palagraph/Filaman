@@ -206,7 +206,7 @@ uint8_t updateSpoolWeight(String spoolId, uint16_t weight) {
 
 bool updateSpoolOcto(int spoolId) {
     String spoolsUrl = octoUrl + "/plugin/Spoolman/selectSpool";
-    Serial.print("Update Spule in Octoprint mit URL: ");
+    Serial.print("Update spool in Octoprint with URL: ");
     Serial.println(spoolsUrl);
 
     JsonDocument updateDoc;
@@ -220,7 +220,7 @@ bool updateSpoolOcto(int spoolId) {
 
     SendToApiParams* params = new SendToApiParams();
     if (params == nullptr) {
-        Serial.println("Fehler: Kann Speicher für Task-Parameter nicht allokieren.");
+        Serial.println("Error: Can not allocate memory for task parameters.");
         return false;
     }
     params->httpType = "POST";
@@ -241,42 +241,6 @@ bool updateSpoolOcto(int spoolId) {
     return true;
 }
 
-bool updateSpoolOcto(int spoolId) {
-    String spoolsUrl = octoUrl + "/plugin/Spoolman/selectSpool";
-    Serial.print("Update Spule in Octoprint mit URL: ");
-    Serial.println(spoolsUrl);
-
-    JsonDocument updateDoc;
-    updateDoc["spool_id"] = spoolId;
-    updateDoc["tool"] = "tool0";
-
-    String updatePayload;
-    serializeJson(updateDoc, updatePayload);
-    Serial.print("Update Payload: ");
-    Serial.println(updatePayload);
-
-    SendToApiParams* params = new SendToApiParams();
-    if (params == nullptr) {
-        Serial.println("Fehler: Kann Speicher für Task-Parameter nicht allokieren.");
-        return false;
-    }
-    params->httpType = "POST";
-    params->spoolsUrl = spoolsUrl;
-    params->updatePayload = updatePayload;
-    params->octoToken = octoToken;
-
-    // Erstelle die Task
-    BaseType_t result = xTaskCreate(
-        sendToApi,                // Task-Funktion
-        "SendToApiTask",          // Task-Name
-        4096,                     // Stackgröße in Bytes
-        (void*)params,            // Parameter
-        0,                        // Priorität
-        NULL                      // Task-Handle (nicht benötigt)
-    );
-
-    return true;
-}
 
 bool updateSpoolBambuData(String payload) {
     JsonDocument doc;
