@@ -16,9 +16,6 @@
 bool mainTaskWasPaused = 0;
 uint8_t scaleTareCounter = 0;
 
-bool mainTaskWasPaused = 0;
-uint8_t scaleTareCounter = 0;
-
 // ##### SETUP #####
 
 void setup() {
