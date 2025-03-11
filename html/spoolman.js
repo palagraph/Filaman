@@ -87,10 +87,10 @@ function populateVendorDropdown(data, selectedSmId = null) {
     });
 
     // After the loop: formatting of the total length
-    console.log("Total Lenght: ", totalLength);
-    const formattedLength = totalLength > 1000 
-        ? (totalLength / 1000).toFixed(2) + " km" 
-        : totalLength.toFixed(2) + " m";
+    const lengthInM = totalLength / 1000;  // erst in m umrechnen
+    const formattedLength = lengthInM > 1000 
+        ? (lengthInM / 1000).toFixed(2) + " km" 
+        : lengthInM.toFixed(2) + " m";
 
     // Formatting of the total weight (from g to kg to t)
     const weightInKg = totalWeight / 1000;  // Only convert into KG
