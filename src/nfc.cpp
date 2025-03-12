@@ -26,7 +26,8 @@ volatile uint8_t hasReadRfidTag = 0;
 //4 = error when writing
 //5 = successfully written
 //6 = reading
-//*****PN532
+//***** PN532
+
 
 // ##### functions for RFID ######
 void payloadToJson(uint8_t *data) {
@@ -35,7 +36,7 @@ void payloadToJson(uint8_t *data) {
   
     if (startJson && endJson && endJson > startJson) {
       String jsonString = String(startJson, endJson - startJson + 1);
-      //Serial.print("Cleaner JSON-String: ");
+      //Serial.print("Cleaned JSON String: ");
       //Serial.println(jsonString);
   
       // Process JSON document
@@ -70,15 +71,14 @@ void payloadToJson(uint8_t *data) {
   }
 
 bool formatNdefTag() {
-    uint8_t ndefInit[] = { 0x03, 0x00, 0xFE }; // Ndef initialization message
+    uint8_t ndefInit[] = { 0x03, 0x00, 0xFE }; // NDEF initialization message
     bool success = true;
-    int pageOffset = 4; // Home for NDEF data on NTAG2XX
+    int pageOffset = 4; // Start of NDEF data on NTAG2XX
   
     Serial.println();
     Serial.println("Format NDEF tag...");
   
-    // Write the initialization message on the first pages
-
+    // Write the initialization message on the first page
     for (int i = 0; i < sizeof(ndefInit); i += 4) {
       if (!nfc.ntag2xx_WritePage(pageOffset + (i / 4), &ndefInit[i])) {
           success = false;
@@ -106,7 +106,7 @@ uint8_t ntag2xx_WriteNDEF(const char *payload) {
   
   // Figure out how long the string is
   uint8_t len = strlen(payload);
-  Serial.print("Length of the Payoad:");
+  Serial.print("Length of the Payoad: ");
   Serial.println(len);
   
   Serial.print("Payload: ");Serial.println(payload);
@@ -186,7 +186,7 @@ uint8_t ntag2xx_WriteNDEF(const char *payload) {
     return 0;
   }
 
-  Serial.println("Ndef message written successfully.");
+  Serial.println("NDEF message written successfully.");
   free(combinedData);
   return 1;
 }
@@ -203,7 +203,6 @@ bool decodeNdefAndReturnJson(const byte* encodedMessage) {
   }
 
   // Process JSON document
-
   JsonDocument doc;  // Adjust the size to the JSON content
   DeserializationError error = deserializeJson(doc, nfcJsonData);
   if (error) 
@@ -217,12 +216,11 @@ bool decodeNdefAndReturnJson(const byte* encodedMessage) {
   else 
   {
     // Send the updated AMS data to all web socket clients
-
-    Serial.println("Json document successfully processed");
+    Serial.println("JSON document successfully processed");
     Serial.println(doc.as<String>());
     if (doc["sm_id"] != "") 
     {
-      Serial.println("SPOOL-ID found: " + doc["sm_id"].as<String>());
+      Serial.println("SPOOL ID found: " + doc["sm_id"].as<String>());
       spoolId = doc["sm_id"].as<String>();
     } 
     else 
@@ -240,8 +238,8 @@ bool decodeNdefAndReturnJson(const byte* encodedMessage) {
 void writeJsonToTag(void *parameter) {
   const char* payload = (const char*)parameter;
 
-  // Gib die erstellte NDEF-Message aus
-  Serial.println("Create NDEF-Message...");
+  // Provide the created NDEF message
+  Serial.println("Create NDEF Message...");
   Serial.println(payload);
 
   hasReadRfidTag = 3;
@@ -286,8 +284,8 @@ void writeJsonToTag(void *parameter) {
     success = ntag2xx_WriteNDEF(payload);
     if (success) 
     {
-        Serial.println("NDEF-Message successfully written on the tag");
-        //oledShowMessage("NFC-Tag written");
+        Serial.println("NDEF Message successfully written on the tag");
+        //oledShowMessage("NFC Tag written");
         oledShowIcon("success");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         hasReadRfidTag = 5;
@@ -318,7 +316,7 @@ void writeJsonToTag(void *parameter) {
   else
   {
     Serial.println("Error: no tag to write.");
-    oledShowMessage("No NFC-Tag found");
+    oledShowMessage("No NFC Tag found");
     vTaskDelay(2000 / portTICK_PERIOD_MS);
     hasReadRfidTag = 0;
   }
@@ -406,7 +404,7 @@ void scanRfidTask(void * parameter) {
 
             if (!decodeNdefAndReturnJson(data)) 
             {
-              oledShowMessage("NFC-Tag unknown");
+              oledShowMessage("NFC Tag unknown");
               vTaskDelay(2000 / portTICK_PERIOD_MS);
               hasReadRfidTag = 2;
             }
@@ -419,7 +417,7 @@ void scanRfidTask(void * parameter) {
           }
           else
           {
-            oledShowMessage("NFC-Tag read error");
+            oledShowMessage("NFC Tag read error");
             hasReadRfidTag = 2;
           }
         }
@@ -450,7 +448,7 @@ void startNfc() {
   delay(1000);
   unsigned long versiondata = nfc.getFirmwareVersion();  // Read version number of the firmware
   if (! versiondata) {                                   // If there is no answer
-    Serial.println("Can't find a RFID board!");            // Send text "Can't ..." to serial monitor
+    Serial.println("Can't find a RFID board!");          // Send text "Can't ..." to serial monitor
     //delay(5000);
     //ESP.restart();
     oledShowMessage("No RFID Board found");

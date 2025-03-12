@@ -115,7 +115,7 @@ String loadHtmlWithHeader(const char* filename) {
     Serial.println("Load HTML file.: " + String(filename));
     if (!LittleFS.exists(filename)) {
         Serial.println("Error: File not found!");
-        return "Fehler: Datei nicht gefunden!";
+        return "Error: File not found!";
     }
 
     File file = LittleFS.open(filename, "r");
@@ -201,7 +201,7 @@ void setupWebserver(AsyncWebServer &server) {
         request->send(response);
     });
 
-    // Route for scales
+    // Route for scale
     server.on("/scale", HTTP_GET, [](AsyncWebServerRequest *request){
         Serial.println("Receive request for /scales");
         AsyncWebServerResponse *response = request->beginResponse(LittleFS, "/scale.html.gz", "text/html");

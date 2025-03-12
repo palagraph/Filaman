@@ -1,11 +1,11 @@
 #include "config.h"
 
 // ################## Config area start
-// *****PN532 (RFID)
+// ***** PN532 (RFID)
 //#define PN532_SCK 18
-//#define pn532_mosi 23
-//#define pn532_ss 5
-//#define pn532_miso 19
+//#define PN532_MOSI 23
+//#define PN532_SS 5
+//#define PN532_MISO 19
 
 
 const uint8_t PN532_IRQ = 32;

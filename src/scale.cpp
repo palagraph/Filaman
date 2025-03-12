@@ -23,7 +23,6 @@ const char* NVS_NAMESPACE = "scale";
 const char* NVS_KEY_CALIBRATION = "cal_value";
 
 // ##### Functions for scale ######
-
 uint8_t tareScale() {
   Serial.println("Tare scale");
   scale.tare();
@@ -50,8 +49,7 @@ void scale_loop(void * parameter) {
       weight = round(scale.get_units());
     }
     
-    vTaskDelay(pdMS_TO_TICKS(100)); // Delay so as not to overload the CPU
-
+    vTaskDelay(pdMS_TO_TICKS(100)); 
   }
 }
 
@@ -59,7 +57,7 @@ void start_scale() {
   Serial.println("Check calibration value");
   float calibrationValue;
 
-  // NVS lesen
+  // Read NVS
   preferences.begin(NVS_NAMESPACE, true); // true = readonly
   calibrationValue = preferences.getFloat(NVS_KEY_CALIBRATION, defaultScaleCalibrationValue);
   preferences.end();
@@ -94,7 +92,7 @@ void start_scale() {
     scale.tare();
   }
 
-  // Display Gewicht
+  // Display weight
   oledShowWeight(0);
 
   Serial.println("Start scale task");
@@ -159,12 +157,12 @@ uint8_t calibrate_scale() {
       Serial.print("New calibration value has been set to: ");
       Serial.println(newCalibrationValue);
 
-      // Speichern mit NVS
+      // Save in NVS
       preferences.begin(NVS_NAMESPACE, false); // false = readwrite
       preferences.putFloat(NVS_KEY_CALIBRATION, newCalibrationValue);
       preferences.end();
 
-      // Verifizieren
+      // Verification
       preferences.begin(NVS_NAMESPACE, true);
       float verifyValue = preferences.getFloat(NVS_KEY_CALIBRATION, 0);
       preferences.end();

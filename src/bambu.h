@@ -17,14 +17,11 @@ struct TrayData {
 };
 
 #define MAX_AMS 17  // 16 normal AMS + 1 external spool
-
 extern String amsJsonData;  // For the prepared JSON data
-
 
 struct AMSData {
     uint8_t ams_id;
     TrayData trays[4]; // Acceptance: a maximum of 4 trays per AMS
-
 };
 
 extern bool bambu_connected;

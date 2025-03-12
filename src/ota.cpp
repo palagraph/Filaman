@@ -234,7 +234,6 @@ void handleUpdate(AsyncWebServer &server) {
         request->send(response);
         
         // Second 100% message for security
-
         ws.textAll("{\"type\":\"updateProgress\",\"progress\":100,\"status\":\"success\",\"message\":\"Update successful! Restarting device...\"}");
         
         espRestart();
